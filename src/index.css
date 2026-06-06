@@ -1,0 +1,90 @@
+@import "tailwindcss";
+
+:root {
+    --bg: #080808;
+    --accent: #00ff41; 
+    --grid-color: rgba(255, 255, 255, 0.07);
+}
+
+body {
+    background-color: var(--bg);
+    color: #f5f5f5;
+    font-family: 'JetBrains Mono', monospace;
+    overflow-x: hidden;
+    cursor: none; 
+}
+
+.heading-font { font-family: 'Archivo Black', sans-serif; text-transform: uppercase; }
+
+.noise {
+    position: fixed; inset: 0;
+    width: 100%; height: 100%;
+    z-index: 9999;
+    pointer-events: none;
+    opacity: 0.04;
+    background-image: url('https://grainy-gradients.vercel.app/noise.svg');
+}
+
+#custom-cursor {
+    position: fixed;
+    top: 0; left: 0;
+    width: 40px; height: 40px;
+    border: 1px solid var(--accent);
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    mix-blend-difference: difference;
+}
+
+#cursor-dot {
+    width: 4px; height: 4px;
+    background: var(--accent);
+    border-radius: 50%;
+}
+
+.char { display: inline-block; will-change: transform, opacity; }
+
+.mechanical-border {
+    border: 1px solid rgba(255,255,255,0.1);
+    position: relative;
+}
+.mechanical-border::before {
+    content: ''; position: absolute; top: -2px; left: -2px;
+    width: 10px; height: 10px; border-top: 2px solid var(--accent); border-left: 2px solid var(--accent);
+}
+
+#spline-loader {
+    position: fixed; top: 0; left: 0;
+    width: 100%; height: 100vh;
+    z-index: 99999; background: black;
+}
+
+#boot-text {
+    position: absolute; bottom: 50px; left: 50px;
+    font-size: 12px; letter-spacing: 3px;
+    color: #00ff41; opacity: 0.8;
+}
+
+/* Scanline Effect */
+.scanline {
+    width: 100%; height: 2px;
+    background: rgba(0, 255, 65, 0.3);
+    position: absolute; top: 0; left: 0;
+    z-index: 10; pointer-events: none; opacity: 0;
+}
+.team-card:hover .scanline {
+    animation: scan 1.5s linear infinite;
+    opacity: 1;
+}
+@keyframes scan { 0% { top: 0%; } 100% { top: 100%; } }
+
+.dash-tab.active {
+    background: var(--accent);
+    color: #000;
+    box-shadow: 0 0 15px var(--accent);
+}
+
+.reveal { opacity: 0; transform: translateY(30px); }
