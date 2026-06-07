@@ -22,3 +22,8 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+.env
+
+#Additional files
+context.md
+improvements.md
