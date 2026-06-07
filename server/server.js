@@ -32,6 +32,8 @@ app.get('/api/health', (req, res) => {
 
 // We will mount our routes here 
 app.use('/api/auth', require('./routes/authRoutes'));
+app.use('/api/events', require('./routes/eventRoutes'));
+app.use('/api/registrations', require('./routes/registrationRoutes'));
 
 // 7. Start the server
 const PORT = process.env.PORT || 5001;
