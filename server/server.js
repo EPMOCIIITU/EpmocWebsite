@@ -19,9 +19,9 @@ app.use(express.json()); // Parse incoming JSON payloads
 app.use(cookieParser()); // Parse cookies (for HttpOnly tokens)
 
 // 5. CORS Configuration
-// It's essential to set credentials: true and specify the exact origin to allow HttpOnly cookies to be sent and received
+// Allow HttpOnly cookies to be sent/received. Configured dynamically from .env
 app.use(cors({
-  origin: 'http://localhost:5173', // Your Vite frontend URL
+  origin: process.env.CLIENT_URL || 'http://localhost:5173',
   credentials: true
 }));
 
@@ -31,9 +31,10 @@ app.get('/api/health', (req, res) => {
 });
 
 // We will mount our routes here 
+app.use('/api/auth', require('./routes/authRoutes'));
 
 // 7. Start the server
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 5001;
 app.listen(PORT, () => {
   console.log(`Server is running in ${process.env.NODE_ENV || 'development'} mode on port ${PORT}`);
 });
