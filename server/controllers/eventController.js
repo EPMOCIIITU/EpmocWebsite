@@ -12,6 +12,12 @@ const createEvent = async (req, res) => {
       return res.status(400).json({ message: 'Title and date are required' });
     }
 
+    // Ensure no two events have the same title/id logically
+    const existingEvent = await Event.findOne({ title });
+    if (existingEvent) {
+      return res.status(400).json({ message: 'An event with this title already exists' });
+    }
+
     const eventYear = new Date(date).getFullYear().toString();
 
     // 1. Automatically generate Google Drive Folder & Google Sheet

@@ -34,6 +34,7 @@ app.get('/api/health', (req, res) => {
 app.use('/api/auth', require('./routes/authRoutes'));
 app.use('/api/events', require('./routes/eventRoutes'));
 app.use('/api/registrations', require('./routes/registrationRoutes'));
+app.use('/api/teams', require('./routes/teamRoutes'));
 
 // 7. Start the server
 const PORT = process.env.PORT || 5001;
