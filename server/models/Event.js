@@ -5,10 +5,7 @@ const eventSchema = new mongoose.Schema({
     type: String,
     required: true,
     trim: true,
-  },
-  description: {
-    type: String,
-    required: true,
+    unique: true,
   },
   date: {
     type: Date,
@@ -16,13 +13,28 @@ const eventSchema = new mongoose.Schema({
   },
   coverImage: {
     type: String,
-    // Store URL from Cloudinary/AWS S3
+    // Will store cloud URL (Google Drive / S3)
   },
-  status: {
+  // --- Team Constraints ---
+  requiresTeam: {
+    type: Boolean,
+    default: false,
+  },
+  minTeamSize: {
+    type: Number,
+    default: 1,
+  },
+  maxTeamSize: {
+    type: Number,
+    default: 1,
+  },
+  // --- Integrations ---
+  googleSheetId: {
     type: String,
-    enum: ['upcoming', 'ongoing', 'past'],
-    default: 'upcoming',
   },
+  driveFolderId: {
+    type: String,
+  }
 }, {
   timestamps: true,
 });
