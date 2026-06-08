@@ -6,6 +6,8 @@ const cors = require('cors');
 const helmet = require('helmet');
 const cookieParser = require('cookie-parser');
 const connectDB = require('./config/db');
+const swaggerUi = require('swagger-ui-express');
+const swaggerSpec = require('./config/swagger');
 
 // 2. Connect to MongoDB Atlas
 connectDB();
@@ -36,8 +38,15 @@ app.use('/api/events', require('./routes/eventRoutes'));
 app.use('/api/registrations', require('./routes/registrationRoutes'));
 app.use('/api/teams', require('./routes/teamRoutes'));
 
+// 8. Swagger API Documentation
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
+  customCss: '.swagger-ui .topbar { display: none }',
+  customSiteTitle: 'EPMOC API Docs'
+}));
+
 // 7. Start the server
 const PORT = process.env.PORT || 5001;
 app.listen(PORT, () => {
   console.log(`Server is running in ${process.env.NODE_ENV || 'development'} mode on port ${PORT}`);
+  console.log(`API Docs available at http://localhost:${PORT}/api-docs`);
 });
