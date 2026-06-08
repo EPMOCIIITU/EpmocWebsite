@@ -1,6 +1,7 @@
 const Team = require('../models/Team');
 const Event = require('../models/Event');
 const Registration = require('../models/Registration');
+const { autoSyncEvent } = require('../services/syncService');
 // Custom invite code generator to avoid crypto dependencies
 const generateInviteCode = () => {
   return Math.random().toString(36).substring(2, 8).toUpperCase();
@@ -54,6 +55,9 @@ const createTeam = async (req, res) => {
       team
     });
 
+    // Fire-and-forget: auto-sync to Google Sheet in background
+    autoSyncEvent(eventId);
+
   } catch (error) {
     res.status(500).json({ message: 'Error creating team', error: error.message });
   }
@@ -104,6 +108,9 @@ const joinTeam = async (req, res) => {
       message: 'Successfully joined the team',
       team
     });
+
+    // Fire-and-forget: auto-sync to Google Sheet in background
+    autoSyncEvent(event._id);
 
   } catch (error) {
     res.status(500).json({ message: 'Error joining team', error: error.message });

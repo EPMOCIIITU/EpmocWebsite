@@ -1,4 +1,5 @@
 const { google } = require('googleapis');
+const { Readable } = require('stream');
 
 const getAuthClient = () => {
   const email = process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL;
@@ -38,8 +39,6 @@ const createEventWorkspace = async (eventName, year) => {
   const sheets = google.sheets({ version: 'v4', auth });
 
   try {
-    // 1. Create the Year/Event Folder in Drive
-    // (Assuming a ROOT_DRIVE_FOLDER_ID is set in .env where the service account has access)
     const rootFolderId = process.env.GOOGLE_ROOT_FOLDER_ID;
     let parents = [];
     if (rootFolderId) parents.push(rootFolderId);
@@ -56,7 +55,6 @@ const createEventWorkspace = async (eventName, year) => {
     });
     const driveFolderId = folder.data.id;
 
-    // 2. Create the Google Sheet inside that newly created folder
     const sheetMetadata = {
       properties: {
         title: `${eventName} Registrations`,
@@ -84,6 +82,102 @@ const createEventWorkspace = async (eventName, year) => {
   }
 };
 
+/**
+ * Uploads a file buffer to a specific Google Drive folder.
+ * @param {Buffer} fileBuffer - The file data from multer
+ * @param {String} mimeType - e.g. 'image/png'
+ * @param {String} fileName - e.g. 'team_logo.png'
+ * @param {String} folderId - The Google Drive folder ID
+ * @returns {String} Public URL of the uploaded file
+ */
+const uploadFileToDrive = async (fileBuffer, mimeType, fileName, folderId) => {
+  const auth = getAuthClient();
+
+  if (!auth) {
+    // Return a mock URL when credentials aren't set
+    return `https://drive.google.com/mock/${fileName}_${Date.now()}`;
+  }
+
+  const drive = google.drive({ version: 'v3', auth });
+
+  try {
+    // Convert buffer to readable stream for Google API
+    const stream = new Readable();
+    stream.push(fileBuffer);
+    stream.push(null);
+
+    const response = await drive.files.create({
+      requestBody: {
+        name: fileName,
+        parents: [folderId]
+      },
+      media: {
+        mimeType,
+        body: stream,
+      },
+      fields: 'id, webViewLink'
+    });
+
+    // Make the file publicly viewable
+    await drive.permissions.create({
+      fileId: response.data.id,
+      requestBody: {
+        role: 'reader',
+        type: 'anyone'
+      }
+    });
+
+    return response.data.webViewLink || `https://drive.google.com/file/d/${response.data.id}/view`;
+
+  } catch (error) {
+    console.error('Error uploading file to Drive:', error);
+    throw new Error('Failed to upload file');
+  }
+};
+
+/**
+ * Syncs all registration data for an event to its Google Sheet.
+ * Called on-demand by Admin from the Command Center (Option B).
+ * @param {String} googleSheetId 
+ * @param {Array} flattenedRows - 2D array [[header], [row1], [row2], ...]
+ */
+const syncDataToSheet = async (googleSheetId, flattenedRows) => {
+  const auth = getAuthClient();
+
+  if (!auth) {
+    console.log('📋 [MOCK SYNC] Would have written', flattenedRows.length, 'rows to sheet:', googleSheetId);
+    return { synced: true, mock: true, rowCount: flattenedRows.length };
+  }
+
+  const sheets = google.sheets({ version: 'v4', auth });
+
+  try {
+    // Clear existing data first
+    await sheets.spreadsheets.values.clear({
+      spreadsheetId: googleSheetId,
+      range: 'Sheet1',
+    });
+
+    // Write all rows at once
+    await sheets.spreadsheets.values.update({
+      spreadsheetId: googleSheetId,
+      range: 'Sheet1!A1',
+      valueInputOption: 'USER_ENTERED',
+      requestBody: {
+        values: flattenedRows
+      }
+    });
+
+    return { synced: true, mock: false, rowCount: flattenedRows.length };
+
+  } catch (error) {
+    console.error('Error syncing to Google Sheet:', error);
+    throw new Error('Failed to sync data to Google Sheet');
+  }
+};
+
 module.exports = {
-  createEventWorkspace
+  createEventWorkspace,
+  uploadFileToDrive,
+  syncDataToSheet
 };
