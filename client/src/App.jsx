@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { Routes, Route } from 'react-router-dom';
 import Lenis from 'lenis';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
@@ -23,6 +24,19 @@ function App() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    const lastPlayed = localStorage.getItem('loader_last_played');
+    const now = Date.now();
+    const twelveHours = 12 * 60 * 60 * 1000;
+
+    if (!lastPlayed || (now - parseInt(lastPlayed, 10) > twelveHours)) {
+      setLoading(true);
+      localStorage.setItem('loader_last_played', now.toString());
+    } else {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
     const lenis = new Lenis();
     
     function raf(time) {
@@ -37,6 +51,19 @@ function App() {
     };
   }, []);
 
+  const tempFullPage = (
+    <main className="relative z-10">
+      <Hero />
+      <About />
+      <Archive />
+      <Events />
+      <Team />
+      <CommandCenter />
+      <Contact />
+      <Footer />
+    </main>
+  );
+
   return (
     <>
       {loading && <Loader onComplete={() => setLoading(false)} />}
@@ -48,16 +75,14 @@ function App() {
       <Navbar />
 
       <div id="main-content" style={{ opacity: loading ? 0 : 1, transition: 'opacity 1.5s ease' }}>
-        <main className="relative z-10">
-          <Hero />
-          <About />
-          <Archive />
-          <Events />
-          <Team />
-          <CommandCenter />
-          <Contact />
-          <Footer />
-        </main>
+        <Routes>
+          <Route path="/" element={tempFullPage} />
+          {/* Temporary fallbacks to prevent breaking before Phase 4+ */}
+          <Route path="/archive" element={tempFullPage} />
+          <Route path="/events/:id" element={tempFullPage} />
+          <Route path="/auth" element={tempFullPage} />
+          <Route path="/command" element={tempFullPage} />
+        </Routes>
       </div>
     </>
   )
