@@ -28,6 +28,19 @@ const eventSchema = new mongoose.Schema({
     type: Number,
     default: 1,
   },
+  // --- Details ---
+  description: {
+    type: String,
+    default: '',
+  },
+  venue: {
+    type: String,
+    default: '',
+  },
+  driveGalleryLink: {
+    type: String,
+    default: '',
+  },
   // --- Integrations ---
   googleSheetId: {
     type: String,
