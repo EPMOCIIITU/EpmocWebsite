@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import { Routes, Route } from 'react-router-dom';
-import Lenis from 'lenis';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { TextPlugin } from 'gsap/TextPlugin';
@@ -9,14 +8,12 @@ import Loader from './components/Loader';
 import Cursor from './components/Cursor';
 import GridBackground from './components/GridBackground';
 import Navbar from './components/Navbar';
-import Hero from './components/Hero';
-import About from './components/About';
-import Archive from './components/Archive';
-import Events from './components/Events';
-import Team from './components/Team';
+
+import LandingPage from './pages/LandingPage';
+import AuthPage from './pages/AuthPage';
+import ArchivePage from './pages/ArchivePage';
+import EventDetailPage from './pages/EventDetailPage';
 import CommandCenter from './components/CommandCenter';
-import Contact from './components/Contact';
-import Footer from './components/Footer';
 
 gsap.registerPlugin(ScrollTrigger, TextPlugin);
 
@@ -36,34 +33,6 @@ function App() {
     }
   }, []);
 
-  useEffect(() => {
-    const lenis = new Lenis();
-    
-    function raf(time) {
-      lenis.raf(time);
-      requestAnimationFrame(raf);
-    }
-    
-    requestAnimationFrame(raf);
-
-    return () => {
-      lenis.destroy();
-    };
-  }, []);
-
-  const tempFullPage = (
-    <main className="relative z-10">
-      <Hero />
-      <About />
-      <Archive />
-      <Events />
-      <Team />
-      <CommandCenter />
-      <Contact />
-      <Footer />
-    </main>
-  );
-
   return (
     <>
       {loading && <Loader onComplete={() => setLoading(false)} />}
@@ -76,12 +45,11 @@ function App() {
 
       <div id="main-content" style={{ opacity: loading ? 0 : 1, transition: 'opacity 1.5s ease' }}>
         <Routes>
-          <Route path="/" element={tempFullPage} />
-          {/* Temporary fallbacks to prevent breaking before Phase 4+ */}
-          <Route path="/archive" element={tempFullPage} />
-          <Route path="/events/:id" element={tempFullPage} />
-          <Route path="/auth" element={tempFullPage} />
-          <Route path="/command" element={tempFullPage} />
+          <Route path="/" element={<LandingPage />} />
+          <Route path="/archive" element={<ArchivePage />} />
+          <Route path="/events/:id" element={<EventDetailPage />} />
+          <Route path="/auth" element={<AuthPage />} />
+          <Route path="/command" element={<CommandCenter />} />
         </Routes>
       </div>
     </>
