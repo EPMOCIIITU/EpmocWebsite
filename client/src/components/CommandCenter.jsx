@@ -8,7 +8,7 @@ gsap.registerPlugin(ScrollTrigger);
 
 // --- Widgets ---
 
-const EventsWidget = () => {
+const EventsWidget = ({ layout = 'full' }) => {
   const [events, setEvents] = useState([]);
   
   useEffect(() => {
@@ -19,14 +19,14 @@ const EventsWidget = () => {
   }, []);
 
   return (
-    <div className="col-span-full md:col-span-1 mechanical-border p-8 bg-white/5 reveal-dash">
+    <div className={`${layout === 'compact' ? 'col-span-full md:col-span-1' : 'col-span-full'} mechanical-border p-8 bg-white/5 reveal-dash`}>
       <h4 className="mono text-green-500 mb-6 text-xs underline">EVENT_DIRECTIVES</h4>
-      <div className="space-y-4">
+      <div className={layout === 'compact' ? 'space-y-4' : 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4'}>
         {events.length === 0 ? (
-          <p className="mono text-[10px] opacity-50">NO_DATA_AVAILABLE</p>
+          <p className="mono text-[10px] opacity-50 p-3">NO_DATA_AVAILABLE</p>
         ) : (
           events.map(ev => (
-            <Link to={`/events/${ev._id}`} key={ev._id} className="block border border-white/10 p-3 hover:bg-white/5 transition-colors">
+            <Link to={`/events/${ev._id}`} key={ev._id} className="block border border-white/10 p-4 hover:bg-white/5 transition-colors">
               <span className="mono text-xs block text-green-500 mb-1">{ev.title}</span>
               <span className="text-[10px] mono opacity-50 block">STATUS: {new Date(ev.date) < new Date() ? 'COMPLETED' : 'UPCOMING'}</span>
             </Link>
@@ -49,110 +49,14 @@ const TasksWidget = ({ role, navigate }) => {
   );
 };
 
-const RoleManagementWidget = ({ role }) => {
-  const [users, setUsers] = useState([]);
-  const [status, setStatus] = useState('LOADING_USERS...');
-
-  const ALLOWED_DEPARTMENTS = [
-    'Design', 'PR', 'Public Speaking and Marketing', 'Content', 
-    'Technical', 'Social Media', 'Coverage and Video Editing', 
-    'volunteering', 'Decoration'
-  ];
-
-  const fetchUsers = async () => {
-    try {
-      const res = await fetch(import.meta.env.VITE_API_URL ? `${import.meta.env.VITE_API_URL}/users` : 'http://localhost:5001/api/users', {
-        credentials: 'include'
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.message);
-      setUsers(data);
-      setStatus('READY');
-    } catch (err) {
-      setStatus(`ERROR: ${err.message}`);
-    }
-  };
-
-  useEffect(() => {
-    fetchUsers();
-  }, []);
-
-  const handleRoleChange = async (userId, newRole) => {
-    try {
-      const res = await fetch(import.meta.env.VITE_API_URL ? `${import.meta.env.VITE_API_URL}/users/${userId}/role` : `http://localhost:5001/api/users/${userId}/role`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ role: newRole }),
-        credentials: 'include'
-      });
-      if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.message);
-      }
-      fetchUsers();
-    } catch (err) {
-      alert(`Role change failed: ${err.message}`);
-    }
-  };
-
-  const toggleDepartment = async (userId, currentDepartments, deptToToggle) => {
-    const updatedDepartments = currentDepartments.includes(deptToToggle)
-      ? currentDepartments.filter(d => d !== deptToToggle)
-      : [...currentDepartments, deptToToggle];
-
-    try {
-      const res = await fetch(import.meta.env.VITE_API_URL ? `${import.meta.env.VITE_API_URL}/users/${userId}/departments` : `http://localhost:5001/api/users/${userId}/departments`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ memberDepartments: updatedDepartments }),
-        credentials: 'include'
-      });
-      if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.message);
-      }
-      // Optimistically update UI
-      setUsers(users.map(u => u._id === userId ? { ...u, memberDepartments: updatedDepartments } : u));
-    } catch (err) {
-      alert(`Department update failed: ${err.message}`);
-    }
-  };
-
+const RoleManagementLinkWidget = ({ navigate }) => {
   return (
-    <div className="col-span-full mechanical-border p-8 bg-white/5 reveal-dash">
-      <h4 className="mono text-green-500 mb-6 text-xs underline">ROLE_MANAGEMENT_INDEX</h4>
-      <div className="space-y-4 max-h-[500px] overflow-y-auto pr-2">
-        {status !== 'READY' ? (
-          <p className="mono text-[10px] text-yellow-500">{status}</p>
-        ) : users.length === 0 ? (
-          <p className="mono text-[10px] opacity-50">NO_USERS_FOUND</p>
-        ) : (
-          users.map(user => (
-            <div key={user._id} className="flex flex-col p-4 border border-white/10 hover:bg-white/5 transition-colors gap-4">
-              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                <div>
-                  <span className="mono text-xs block">{user.email}</span>
-                  <span className="mono text-[9px] opacity-50 uppercase">{user.name} // {user.branch}</span>
-                </div>
-                
-                <div className="flex items-center gap-4">
-                  <span className={`mono text-[10px] uppercase ${user.role === 'core' ? 'text-green-500' : 'opacity-70'}`}>CURRENT: {user.role}</span>
-                  <select 
-                    onChange={(e) => handleRoleChange(user._id, e.target.value)} 
-                    value={user.role}
-                    className="bg-black p-2 mono text-[10px] border border-white/20 outline-none focus:border-green-500 text-white"
-                  >
-                    <option value="participant">PARTICIPANT</option>
-                    <option value="member">MEMBER</option>
-                    {role === 'core' && <option value="head">HEAD</option>}
-                    {role === 'core' && <option value="core">CORE</option>}
-                  </select>
-                </div>
-              </div>
-            </div>
-          ))
-        )}
-      </div>
+    <div className="col-span-full mechanical-border p-8 bg-white/5 reveal-dash relative flex flex-col justify-center items-center group hover:bg-white/10 transition-colors cursor-pointer" onClick={() => navigate('/command/roles')}>
+      <h4 className="heading-font text-3xl text-green-500 mb-2">PERSONNEL</h4>
+      <p className="mono text-[10px] opacity-70 mb-6 text-center">ACCESS_ROLE_MANAGEMENT_AND_FILTERS</p>
+      <button className="mono text-xs px-6 py-2 border border-green-500 text-green-500 group-hover:bg-green-500 group-hover:text-black transition-all">
+        VIEW_INDEX &gt;
+      </button>
     </div>
   );
 };
@@ -211,7 +115,7 @@ const DepartmentSelectionWidget = ({ user }) => {
   );
 };
 
-const RegistrationsWidget = () => {
+const RegistrationsWidget = ({ layout = 'compact' }) => {
   const [events, setEvents] = useState([]);
   
   useEffect(() => {
@@ -222,9 +126,9 @@ const RegistrationsWidget = () => {
   }, []);
 
   return (
-    <div className="col-span-full mechanical-border p-8 bg-black/50 reveal-dash relative">
+    <div className={`${layout === 'compact' ? 'col-span-full md:col-span-1' : 'col-span-full'} mechanical-border p-8 bg-black/50 reveal-dash relative`}>
       <h4 className="mono text-green-500 mb-6 text-xs underline">EVENT_DATA_INDEX</h4>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className={layout === 'compact' ? 'space-y-4' : 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4'}>
         {events.map(ev => (
           <Link key={ev._id} to={`/command/events/${ev._id}/manage`} className="block border border-white/10 p-4 hover:bg-white/5 transition-colors group">
             <span className="mono text-xs block text-white mb-2">{ev.title}</span>
@@ -352,13 +256,17 @@ export default function CommandCenter() {
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           
-          {/* Participant Level (Level 1) */}
-          <EventsWidget />
+          {/* Top Left Column */}
+          {role === 'member' && <EventsWidget layout="compact" />}
+          {(role === 'head' || role === 'core') && <RegistrationsWidget layout="compact" />}
 
-          {/* Member Level (Level 2) */}
+          {/* Top Right 2-Columns */}
           {(role === 'member' || role === 'head' || role === 'core') && (
             <TasksWidget role={role} navigate={navigate} />
           )}
+
+          {/* Full Width for Participants */}
+          {role === 'participant' && <EventsWidget layout="full" />}
 
           {/* Department Selection (Only for Members) */}
           {role === 'member' && (
@@ -368,8 +276,8 @@ export default function CommandCenter() {
           {/* Head Level (Level 3) */}
           {(role === 'head' || role === 'core') && (
             <>
-              <RoleManagementWidget role={role} />
-              <RegistrationsWidget />
+              <RoleManagementLinkWidget navigate={navigate} />
+              <EventsWidget layout="full" />
               <CommunicationsWidget />
             </>
           )}
