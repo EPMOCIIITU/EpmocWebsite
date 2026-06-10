@@ -12,7 +12,9 @@ export default function EventDetailPage() {
   const [error, setError] = useState('');
 
   // Registration form state
+  const [teamMode, setTeamMode] = useState('create'); // 'create' or 'join'
   const [teamName, setTeamName] = useState('');
+  const [inviteCode, setInviteCode] = useState('');
   const [registerStatus, setRegisterStatus] = useState('');
 
   useEffect(() => {
@@ -48,8 +50,13 @@ export default function EventDetailPage() {
       let payload = { eventId: id };
 
       if (event.requiresTeam) {
-        endpoint = import.meta.env.VITE_API_URL ? `${import.meta.env.VITE_API_URL}/teams` : 'http://localhost:5001/api/teams';
-        payload = { eventId: id, name: teamName };
+        if (teamMode === 'create') {
+          endpoint = import.meta.env.VITE_API_URL ? `${import.meta.env.VITE_API_URL}/teams` : 'http://localhost:5001/api/teams';
+          payload = { eventId: id, name: teamName };
+        } else {
+          endpoint = import.meta.env.VITE_API_URL ? `${import.meta.env.VITE_API_URL}/teams/join` : 'http://localhost:5001/api/teams/join';
+          payload = { inviteCode };
+        }
       }
 
       const res = await fetch(endpoint, {
@@ -62,7 +69,11 @@ export default function EventDetailPage() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || 'Registration failed');
 
-      setRegisterStatus('REGISTRATION_SUCCESSFUL // LOGGED');
+      if (event.requiresTeam && teamMode === 'create' && data.team?.inviteCode) {
+        setRegisterStatus(`REGISTRATION_SUCCESSFUL // SHARE THIS INVITE CODE WITH YOUR TEAM: ${data.team.inviteCode}`);
+      } else {
+        setRegisterStatus('REGISTRATION_SUCCESSFUL // LOGGED');
+      }
     } catch (err) {
       setRegisterStatus(`ERROR: ${err.message}`);
     }
@@ -137,18 +148,50 @@ export default function EventDetailPage() {
               ) : (
                 <form onSubmit={handleRegister} className="space-y-6">
                   {event.requiresTeam && (
-                    <div>
-                      <label className="block mono text-[10px] opacity-50 mb-2">TEAM_NAME</label>
-                      <input 
-                        type="text" 
-                        required
-                        value={teamName}
-                        onChange={(e) => setTeamName(e.target.value)}
-                        className="w-full bg-transparent border-b border-white/20 p-2 mono text-sm outline-none focus:border-green-500 text-white" 
-                      />
+                    <div className="space-y-4">
+                      <div className="flex gap-4 mb-4">
+                        <button 
+                          type="button" 
+                          onClick={() => setTeamMode('create')}
+                          className={`mono text-[10px] px-3 py-1 border transition-colors ${teamMode === 'create' ? 'border-green-500 text-green-500 bg-green-500/10' : 'border-white/20 opacity-50 hover:opacity-100'}`}
+                        >
+                          CREATE_TEAM
+                        </button>
+                        <button 
+                          type="button" 
+                          onClick={() => setTeamMode('join')}
+                          className={`mono text-[10px] px-3 py-1 border transition-colors ${teamMode === 'join' ? 'border-green-500 text-green-500 bg-green-500/10' : 'border-white/20 opacity-50 hover:opacity-100'}`}
+                        >
+                          JOIN_TEAM
+                        </button>
+                      </div>
+
+                      {teamMode === 'create' ? (
+                        <div>
+                          <label className="block mono text-[10px] opacity-50 mb-2">TEAM_NAME</label>
+                          <input 
+                            type="text" 
+                            required
+                            value={teamName}
+                            onChange={(e) => setTeamName(e.target.value)}
+                            className="w-full bg-transparent border-b border-white/20 p-2 mono text-sm outline-none focus:border-green-500 text-white" 
+                          />
+                        </div>
+                      ) : (
+                        <div>
+                          <label className="block mono text-[10px] opacity-50 mb-2">INVITE_CODE</label>
+                          <input 
+                            type="text" 
+                            required
+                            value={inviteCode}
+                            onChange={(e) => setInviteCode(e.target.value.toUpperCase())}
+                            className="w-full bg-transparent border-b border-white/20 p-2 mono text-sm outline-none focus:border-green-500 text-white uppercase" 
+                          />
+                        </div>
+                      )}
                     </div>
                   )}
-                  <p className="mono text-[10px] opacity-40">User ID: {event.requiresTeam ? 'Will be assigned as Team Leader' : 'Registered as Individual'}</p>
+                  <p className="mono text-[10px] opacity-40">User ID: {event.requiresTeam ? (teamMode === 'create' ? 'Will be assigned as Team Leader' : 'Will be assigned as Team Member') : 'Registered as Individual'}</p>
                   <button type="submit" className="w-full py-4 border border-green-500 text-green-500 heading-font text-sm hover:bg-green-500 hover:text-black transition-all">
                     SUBMIT_REGISTRATION
                   </button>

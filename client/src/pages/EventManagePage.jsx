@@ -122,7 +122,7 @@ export default function EventManagePage() {
                   </div>
                   <div>
                     <label className="block mono text-[10px] opacity-50 mb-1">DATE</label>
-                    <input type="date" required value={editData.date} onChange={e=>setEditData({...editData, date: e.target.value})} className="w-full bg-black border border-white/20 p-2 mono text-[10px] outline-none focus:border-green-500 text-white" />
+                    <input type="date" required value={editData.date} onChange={e=>setEditData({...editData, date: e.target.value})} className="w-full bg-black border border-white/20 p-2 mono text-[10px] outline-none focus:border-green-500 text-white [color-scheme:dark]" />
                   </div>
                   <div>
                     <label className="block mono text-[10px] opacity-50 mb-1">VENUE</label>

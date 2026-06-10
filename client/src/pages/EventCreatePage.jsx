@@ -75,7 +75,7 @@ export default function EventCreatePage() {
             
             <div>
               <label className="block mono text-[10px] opacity-50 mb-2">DATE</label>
-              <input type="date" required value={date} onChange={(e)=>setDate(e.target.value)} className="w-full bg-transparent border-b border-white/20 p-3 mono text-sm outline-none focus:border-green-500 text-white" />
+              <input type="date" required value={date} onChange={(e)=>setDate(e.target.value)} className="w-full bg-transparent border-b border-white/20 p-3 mono text-sm outline-none focus:border-green-500 text-white [color-scheme:dark]" />
             </div>
 
             <div>
