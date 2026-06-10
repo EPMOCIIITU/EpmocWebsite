@@ -61,9 +61,9 @@ const logout = (req, res) => {
 // Simplified register method (typically restricted or used for participants)
 const register = async (req, res) => {
   try {
-    const { email, password, role, name, rollNo, branch, department, year } = req.body;
+    const { email, password, role, name, rollNo, branch, year } = req.body;
     const user = await authService.registerUser(email, password, role || 'participant', {
-      name, rollNo, branch, department, year
+      name, rollNo, branch, year
     });
     res.status(201).json(user);
   } catch (error) {

@@ -53,6 +53,12 @@ const RoleManagementWidget = ({ role }) => {
   const [users, setUsers] = useState([]);
   const [status, setStatus] = useState('LOADING_USERS...');
 
+  const ALLOWED_DEPARTMENTS = [
+    'Design', 'PR', 'Public Speaking and Marketing', 'Content', 
+    'Technical', 'Social Media', 'Coverage and Video Editing', 
+    'volunteering', 'Decoration'
+  ];
+
   const fetchUsers = async () => {
     try {
       const res = await fetch(import.meta.env.VITE_API_URL ? `${import.meta.env.VITE_API_URL}/users` : 'http://localhost:5001/api/users', {
@@ -89,31 +95,85 @@ const RoleManagementWidget = ({ role }) => {
     }
   };
 
+  const toggleDepartment = async (userId, currentDepartments, deptToToggle) => {
+    const updatedDepartments = currentDepartments.includes(deptToToggle)
+      ? currentDepartments.filter(d => d !== deptToToggle)
+      : [...currentDepartments, deptToToggle];
+
+    try {
+      const res = await fetch(import.meta.env.VITE_API_URL ? `${import.meta.env.VITE_API_URL}/users/${userId}/departments` : `http://localhost:5001/api/users/${userId}/departments`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ memberDepartments: updatedDepartments }),
+        credentials: 'include'
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.message);
+      }
+      // Optimistically update UI
+      setUsers(users.map(u => u._id === userId ? { ...u, memberDepartments: updatedDepartments } : u));
+    } catch (err) {
+      alert(`Department update failed: ${err.message}`);
+    }
+  };
+
   return (
     <div className="col-span-full mechanical-border p-8 bg-white/5 reveal-dash">
       <h4 className="mono text-green-500 mb-6 text-xs underline">ROLE_MANAGEMENT_INDEX</h4>
-      <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2">
+      <div className="space-y-4 max-h-[500px] overflow-y-auto pr-2">
         {status !== 'READY' ? (
           <p className="mono text-[10px] text-yellow-500">{status}</p>
         ) : users.length === 0 ? (
           <p className="mono text-[10px] opacity-50">NO_USERS_FOUND</p>
         ) : (
           users.map(user => (
-            <div key={user._id} className="flex flex-col md:flex-row md:items-center justify-between p-4 border border-white/10 hover:bg-white/5 transition-colors">
-              <span className="mono text-xs mb-2 md:mb-0">{user.email}</span>
-              <div className="flex items-center gap-4">
-                <span className={`mono text-[10px] uppercase ${user.role === 'core' ? 'text-green-500' : 'opacity-70'}`}>CURRENT: {user.role}</span>
-                <select 
-                  onChange={(e) => handleRoleChange(user._id, e.target.value)} 
-                  value={user.role}
-                  className="bg-black p-2 mono text-[10px] border border-white/20 outline-none focus:border-green-500 text-white"
-                >
-                  <option value="participant">PARTICIPANT</option>
-                  <option value="member">MEMBER</option>
-                  {role === 'core' && <option value="head">HEAD</option>}
-                  {role === 'core' && <option value="core">CORE</option>}
-                </select>
+            <div key={user._id} className="flex flex-col p-4 border border-white/10 hover:bg-white/5 transition-colors gap-4">
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div>
+                  <span className="mono text-xs block">{user.email}</span>
+                  <span className="mono text-[9px] opacity-50 uppercase">{user.name} // {user.branch}</span>
+                </div>
+                
+                <div className="flex items-center gap-4">
+                  <span className={`mono text-[10px] uppercase ${user.role === 'core' ? 'text-green-500' : 'opacity-70'}`}>CURRENT: {user.role}</span>
+                  <select 
+                    onChange={(e) => handleRoleChange(user._id, e.target.value)} 
+                    value={user.role}
+                    className="bg-black p-2 mono text-[10px] border border-white/20 outline-none focus:border-green-500 text-white"
+                  >
+                    <option value="participant">PARTICIPANT</option>
+                    <option value="member">MEMBER</option>
+                    {role === 'core' && <option value="head">HEAD</option>}
+                    {role === 'core' && <option value="core">CORE</option>}
+                  </select>
+                </div>
               </div>
+
+              {/* Department Multi-Select UI (Only for members/heads/core) */}
+              {user.role !== 'participant' && (
+                <div className="pt-4 border-t border-white/10">
+                  <span className="mono text-[9px] text-green-500 mb-2 block">ASSIGNED_DEPARTMENTS:</span>
+                  <div className="flex flex-wrap gap-2">
+                    {ALLOWED_DEPARTMENTS.map(dept => {
+                      const isAssigned = user.memberDepartments?.includes(dept);
+                      return (
+                        <button 
+                          key={dept}
+                          onClick={() => toggleDepartment(user._id, user.memberDepartments || [], dept)}
+                          className={`mono text-[8px] px-2 py-1 border transition-colors ${
+                            isAssigned 
+                              ? 'border-green-500 bg-green-500 text-black' 
+                              : 'border-white/20 text-white/50 hover:border-green-500/50 hover:text-green-500'
+                          }`}
+                        >
+                          {dept}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
             </div>
           ))
         )}

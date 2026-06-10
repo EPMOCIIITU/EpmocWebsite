@@ -9,6 +9,8 @@ import Cursor from './components/Cursor';
 import GridBackground from './components/GridBackground';
 import Navbar from './components/Navbar';
 
+import PageTransition from './components/PageTransition';
+
 import LandingPage from './pages/LandingPage';
 import AuthPage from './pages/AuthPage';
 import ArchivePage from './pages/ArchivePage';
@@ -47,16 +49,18 @@ function App() {
       <Navbar />
 
       <div id="main-content" style={{ opacity: loading ? 0 : 1, transition: 'opacity 1.5s ease' }}>
-        <Routes>
-          <Route path="/" element={<LandingPage />} />
-          <Route path="/events/:id" element={<EventDetailPage />} />
-          <Route path="/archive" element={<ArchivePage />} />
-          <Route path="/auth" element={<AuthPage />} />
-          <Route path="/command" element={<CommandCenter />} />
-          <Route path="/command/tasks" element={<TaskManagementPage />} />
-          <Route path="/command/events/new" element={<EventCreatePage />} />
-          <Route path="/command/events/:id/manage" element={<EventManagePage />} />
-        </Routes>
+        <PageTransition>
+          <Routes>
+            <Route path="/" element={<LandingPage />} />
+            <Route path="/events/:id" element={<EventDetailPage />} />
+            <Route path="/archive" element={<ArchivePage />} />
+            <Route path="/auth" element={<AuthPage />} />
+            <Route path="/command" element={<CommandCenter />} />
+            <Route path="/command/tasks" element={<TaskManagementPage />} />
+            <Route path="/command/events/new" element={<EventCreatePage />} />
+            <Route path="/command/events/:id/manage" element={<EventManagePage />} />
+          </Routes>
+        </PageTransition>
       </div>
     </>
   )

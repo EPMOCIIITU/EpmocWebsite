@@ -32,7 +32,7 @@ const registerUser = async (email, password, role, extendedData = {}) => {
   const salt = await bcrypt.genSalt(10);
   const hashedPassword = await bcrypt.hash(password, salt);
 
-  const { name, rollNo, branch, department, year } = extendedData;
+  const { name, rollNo, branch, year } = extendedData;
 
   const user = await User.create({ 
     email, 
@@ -41,7 +41,6 @@ const registerUser = async (email, password, role, extendedData = {}) => {
     name: name || '',
     rollNo: rollNo || '',
     branch: branch || '',
-    department: department || '',
     year: year || ''
   });
   

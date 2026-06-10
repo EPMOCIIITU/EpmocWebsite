@@ -36,4 +36,25 @@ const updateUserRole = async (req, res) => {
   }
 };
 
-module.exports = { getUsers, updateUserRole };
+const updateUserDepartments = async (req, res) => {
+  try {
+    const { memberDepartments } = req.body;
+    const targetUser = await User.findById(req.params.id);
+    
+    if (!targetUser) return res.status(404).json({ message: 'User not found' });
+
+    // Only allow setting departments for members or above
+    if (targetUser.role === 'participant') {
+      return res.status(400).json({ message: 'Cannot assign working departments to a participant. Upgrade role first.' });
+    }
+
+    targetUser.memberDepartments = memberDepartments;
+    await targetUser.save();
+
+    res.status(200).json(targetUser);
+  } catch (error) {
+    res.status(500).json({ message: 'Error updating user departments', error: error.message });
+  }
+};
+
+module.exports = { getUsers, updateUserRole, updateUserDepartments };

@@ -13,7 +13,6 @@ export default function AuthPage() {
   const [name, setName] = useState('');
   const [rollNo, setRollNo] = useState('');
   const [branch, setBranch] = useState('');
-  const [department, setDepartment] = useState('');
   const [year, setYear] = useState('');
 
   const [showPassword, setShowPassword] = useState(false);
@@ -57,7 +56,7 @@ export default function AuthPage() {
           return;
         }
         await register(email, password, 'participant', {
-          name, rollNo, branch, department, year
+          name, rollNo, branch, year
         });
         // Automatically switch to login on success
         setIsLogin(true);
@@ -66,7 +65,6 @@ export default function AuthPage() {
         setName('');
         setRollNo('');
         setBranch('');
-        setDepartment('');
         setYear('');
         setError('REGISTRATION_SUCCESSFUL // PLEASE_LOGIN');
       }
@@ -159,38 +157,35 @@ export default function AuthPage() {
                 </div>
                 <div>
                   <label className="block mono text-[10px] opacity-50 mb-2">BRANCH</label>
-                  <input 
-                    type="text" 
+                  <select
                     required
                     value={branch}
-                    onChange={(e) => setBranch(e.target.value)}
-                    className="w-full bg-transparent border-b border-white/20 p-3 mono text-sm outline-none focus:border-green-500 text-white transition-colors" 
-                  />
+                    onChange={(e) => { setBranch(e.target.value); setYear(''); }}
+                    className="w-full bg-black border-b border-white/20 p-3 mono text-sm outline-none focus:border-green-500 text-white transition-colors" 
+                  >
+                    <option value="">SELECT_BRANCH...</option>
+                    <option value="CSE">CSE</option>
+                    <option value="ECE">ECE</option>
+                    <option value="IT">IT</option>
+                    <option value="CY">CY</option>
+                    <option value="DS">DS</option>
+                  </select>
                 </div>
-                <div>
-                  <label className="block mono text-[10px] opacity-50 mb-2">DEPARTMENT</label>
-                  <input 
-                    type="text" 
-                    required
-                    value={department}
-                    onChange={(e) => setDepartment(e.target.value)}
-                    className="w-full bg-transparent border-b border-white/20 p-3 mono text-sm outline-none focus:border-green-500 text-white transition-colors" 
-                  />
-                </div>
-                <div className="col-span-2">
+                <div className="col-span-2 md:col-span-1">
                   <label className="block mono text-[10px] opacity-50 mb-2">ACADEMIC_YEAR</label>
                   <select
                     required
                     value={year}
                     onChange={(e) => setYear(e.target.value)}
                     className="w-full bg-black border-b border-white/20 p-3 mono text-sm outline-none focus:border-green-500 text-white transition-colors" 
+                    disabled={!branch}
                   >
-                    <option value="">SELECT_YEAR...</option>
-                    <option value="1">1st Year</option>
-                    <option value="2">2nd Year</option>
-                    <option value="3">3rd Year</option>
-                    <option value="4">4th Year</option>
-                    <option value="Alumni">Alumni</option>
+                    <option value="">{branch ? 'SELECT_YEAR...' : 'SELECT_BRANCH_FIRST'}</option>
+                    {(!branch || branch === 'CSE' || branch === 'ECE' || branch === 'CY' || branch === 'DS') && <option value="1">1st Year</option>}
+                    {(!branch || branch === 'CSE' || branch === 'ECE' || branch === 'CY' || branch === 'DS') && <option value="2">2nd Year</option>}
+                    {(!branch || branch === 'CSE' || branch === 'ECE' || branch === 'IT' || branch === 'CY' || branch === 'DS') && <option value="3">3rd Year</option>}
+                    {(!branch || branch === 'CSE' || branch === 'ECE' || branch === 'IT') && <option value="4">4th Year</option>}
+                    {(!branch || branch === 'CSE' || branch === 'ECE' || branch === 'IT') && <option value="Alumni">Alumni</option>}
                   </select>
                 </div>
                 <div className="relative col-span-2">

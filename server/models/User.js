@@ -17,6 +17,10 @@ const userSchema = new mongoose.Schema({
   branch: { type: String, default: '' },
   department: { type: String, default: '' },
   year: { type: String, default: '' },
+  memberDepartments: [{
+    type: String,
+    enum: ['Design', 'PR', 'Public Speaking and Marketing', 'Content', 'Technical', 'Social Media', 'Coverage and Video Editing', 'volunteering', 'Decoration']
+  }],
   role: {
     type: String,
     enum: ['core', 'head', 'member', 'participant'],
