@@ -37,9 +37,9 @@ const EventsWidget = () => {
   );
 };
 
-const TasksWidget = ({ role }) => {
+const TasksWidget = ({ role, navigate }) => {
   return (
-    <div className="col-span-full md:col-span-2 mechanical-border p-8 bg-white/5 reveal-dash relative flex flex-col justify-center items-center group hover:bg-white/10 transition-colors cursor-pointer" onClick={() => window.location.href = '/command/tasks'}>
+    <div className="col-span-full md:col-span-2 mechanical-border p-8 bg-white/5 reveal-dash relative flex flex-col justify-center items-center group hover:bg-white/10 transition-colors cursor-pointer" onClick={() => navigate('/command/tasks')}>
       <h4 className="heading-font text-3xl text-green-500 mb-2">TASK_CONTROL</h4>
       <p className="mono text-[10px] opacity-70 mb-6 text-center">ACCESS_AND_ASSIGN_PERSONNEL_DIRECTIVES</p>
       <button className="mono text-xs px-6 py-2 border border-green-500 text-green-500 group-hover:bg-green-500 group-hover:text-black transition-all">
@@ -149,34 +149,63 @@ const RoleManagementWidget = ({ role }) => {
                   </select>
                 </div>
               </div>
-
-              {/* Department Multi-Select UI (Only for members/heads/core) */}
-              {user.role !== 'participant' && (
-                <div className="pt-4 border-t border-white/10">
-                  <span className="mono text-[9px] text-green-500 mb-2 block">ASSIGNED_DEPARTMENTS:</span>
-                  <div className="flex flex-wrap gap-2">
-                    {ALLOWED_DEPARTMENTS.map(dept => {
-                      const isAssigned = user.memberDepartments?.includes(dept);
-                      return (
-                        <button 
-                          key={dept}
-                          onClick={() => toggleDepartment(user._id, user.memberDepartments || [], dept)}
-                          className={`mono text-[8px] px-2 py-1 border transition-colors ${
-                            isAssigned 
-                              ? 'border-green-500 bg-green-500 text-black' 
-                              : 'border-white/20 text-white/50 hover:border-green-500/50 hover:text-green-500'
-                          }`}
-                        >
-                          {dept}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
             </div>
           ))
         )}
+      </div>
+    </div>
+  );
+};
+
+const DepartmentSelectionWidget = ({ user }) => {
+  const [departments, setDepartments] = useState(user.memberDepartments || []);
+
+  const ALLOWED_DEPARTMENTS = [
+    'Design', 'PR', 'Public Speaking and Marketing', 'Content', 
+    'Technical', 'Social Media', 'Coverage and Video Editing', 
+    'volunteering', 'Decoration'
+  ];
+
+  const toggleDepartment = async (deptToToggle) => {
+    const updatedDepartments = departments.includes(deptToToggle)
+      ? departments.filter(d => d !== deptToToggle)
+      : [...departments, deptToToggle];
+
+    setDepartments(updatedDepartments);
+
+    try {
+      await fetch(import.meta.env.VITE_API_URL ? `${import.meta.env.VITE_API_URL}/users/${user._id}/departments` : `http://localhost:5001/api/users/${user._id}/departments`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ memberDepartments: updatedDepartments }),
+        credentials: 'include'
+      });
+    } catch (err) {
+      alert(`Failed to save department: ${err.message}`);
+    }
+  };
+
+  return (
+    <div className="col-span-full mechanical-border p-8 bg-black/50 reveal-dash border-green-500/30">
+      <h4 className="mono text-green-500 mb-4 text-xs underline">MY_DEPARTMENTS_PROFILE</h4>
+      <p className="mono text-[10px] opacity-70 mb-6">SELECT_THE_DEPARTMENTS_YOU_ARE_WORKING_IN</p>
+      <div className="flex flex-wrap gap-3">
+        {ALLOWED_DEPARTMENTS.map(dept => {
+          const isAssigned = departments.includes(dept);
+          return (
+            <button 
+              key={dept}
+              onClick={() => toggleDepartment(dept)}
+              className={`mono text-[10px] px-4 py-2 border transition-all ${
+                isAssigned 
+                  ? 'border-green-500 bg-green-500 text-black shadow-[0_0_10px_rgba(34,197,94,0.3)]' 
+                  : 'border-white/20 text-white/50 hover:border-green-500/50 hover:text-green-500'
+              }`}
+            >
+              {dept}
+            </button>
+          );
+        })}
       </div>
     </div>
   );
@@ -211,9 +240,9 @@ const RegistrationsWidget = () => {
   );
 };
 
-const EventCreationWidget = () => {
+const EventCreationWidget = ({ navigate }) => {
   return (
-    <div className="col-span-full mechanical-border p-8 bg-green-900/10 border-green-500/30 reveal-dash relative flex flex-col justify-center items-center group hover:bg-green-500/20 transition-colors cursor-pointer" onClick={() => window.location.href = '/command/events/new'}>
+    <div className="col-span-full mechanical-border p-8 bg-green-900/10 border-green-500/30 reveal-dash relative flex flex-col justify-center items-center group hover:bg-green-500/20 transition-colors cursor-pointer" onClick={() => navigate('/command/events/new')}>
       <h4 className="heading-font text-3xl text-green-500 mb-2">INITIALIZE_DIRECTIVE</h4>
       <p className="mono text-[10px] opacity-70 mb-6 text-center text-green-500">CORE_OVERRIDE: CREATE_NEW_EVENT</p>
       <button className="mono text-xs px-6 py-2 border border-green-500 text-green-500 group-hover:bg-green-500 group-hover:text-black transition-all">
@@ -328,7 +357,12 @@ export default function CommandCenter() {
 
           {/* Member Level (Level 2) */}
           {(role === 'member' || role === 'head' || role === 'core') && (
-            <TasksWidget role={role} />
+            <TasksWidget role={role} navigate={navigate} />
+          )}
+
+          {/* Department Selection (Only for Members) */}
+          {role === 'member' && (
+            <DepartmentSelectionWidget user={user} />
           )}
 
           {/* Head Level (Level 3) */}
@@ -342,7 +376,7 @@ export default function CommandCenter() {
 
           {/* Core Level (Level 4) */}
           {role === 'core' && (
-            <EventCreationWidget />
+            <EventCreationWidget navigate={navigate} />
           )}
 
         </div>

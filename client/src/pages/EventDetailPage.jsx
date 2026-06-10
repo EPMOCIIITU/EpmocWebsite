@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import gsap from 'gsap';
 import { useAuth } from '../context/AuthContext';
 
 export default function EventDetailPage() {
   const { id } = useParams();
+  const navigate = useNavigate();
   const { isAuthenticated } = useAuth();
   
   const [event, setEvent] = useState(null);
@@ -91,7 +92,7 @@ export default function EventDetailPage() {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center p-10 gap-4">
         <div className="mono text-red-500 text-sm">ERROR: {error || 'EVENT_NOT_FOUND'}</div>
-        <Link to="/" className="mono text-[10px] border border-white/20 px-4 py-2 hover:bg-white/10">RETURN_TO_BASE</Link>
+        <button onClick={() => navigate(-1)} className="mono text-[10px] border border-white/20 px-4 py-2 hover:bg-white/10">RETURN_TO_BASE</button>
       </div>
     );
   }
@@ -100,9 +101,9 @@ export default function EventDetailPage() {
 
   return (
     <div className="min-h-screen pt-32 pb-20 px-10 md:px-20 max-w-6xl mx-auto">
-      <Link to="/" className="mono text-[10px] opacity-50 hover:opacity-100 hover:text-green-500 transition-colors mb-10 inline-block reveal-event">
+      <button onClick={() => navigate(-1)} className="mono text-[10px] opacity-50 hover:opacity-100 hover:text-green-500 transition-colors mb-10 inline-block reveal-event">
         ← BACK_TO_LOG
-      </Link>
+      </button>
 
       <div className="relative w-full aspect-[21/9] bg-neutral-900 mb-12 mechanical-border overflow-hidden reveal-event">
         {event.coverImage ? (
