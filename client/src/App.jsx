@@ -14,6 +14,9 @@ import AuthPage from './pages/AuthPage';
 import ArchivePage from './pages/ArchivePage';
 import EventDetailPage from './pages/EventDetailPage';
 import CommandCenter from './components/CommandCenter';
+import TaskManagementPage from './pages/TaskManagementPage';
+import EventCreatePage from './pages/EventCreatePage';
+import EventManagePage from './pages/EventManagePage';
 
 gsap.registerPlugin(ScrollTrigger, TextPlugin);
 
@@ -50,6 +53,9 @@ function App() {
           <Route path="/events/:id" element={<EventDetailPage />} />
           <Route path="/auth" element={<AuthPage />} />
           <Route path="/command" element={<CommandCenter />} />
+          <Route path="/command/tasks" element={<TaskManagementPage />} />
+          <Route path="/command/events/new" element={<EventCreatePage />} />
+          <Route path="/command/events/:id/manage" element={<EventManagePage />} />
         </Routes>
       </div>
     </>

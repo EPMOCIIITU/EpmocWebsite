@@ -12,6 +12,11 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  name: { type: String, default: '' },
+  rollNo: { type: String, default: '' },
+  branch: { type: String, default: '' },
+  department: { type: String, default: '' },
+  year: { type: String, default: '' },
   role: {
     type: String,
     enum: ['core', 'head', 'member', 'participant'],

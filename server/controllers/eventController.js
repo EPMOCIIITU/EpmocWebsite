@@ -73,8 +73,32 @@ const getEventById = async (req, res) => {
   }
 };
 
+// @desc    Update an event
+// @route   PUT /api/events/:id
+// @access  Private (Core, Head)
+const updateEvent = async (req, res) => {
+  try {
+    const event = await Event.findById(req.params.id);
+    if (!event) return res.status(404).json({ message: 'Event not found' });
+
+    // Update fields
+    const fieldsToUpdate = ['title', 'date', 'venue', 'description', 'coverImage', 'driveGalleryLink', 'requiresTeam', 'minTeamSize', 'maxTeamSize'];
+    fieldsToUpdate.forEach(field => {
+      if (req.body[field] !== undefined) {
+        event[field] = req.body[field];
+      }
+    });
+
+    await event.save();
+    res.status(200).json(event);
+  } catch (error) {
+    res.status(500).json({ message: 'Error updating event', error: error.message });
+  }
+};
+
 module.exports = {
   createEvent,
   getEvents,
-  getEventById
+  getEventById,
+  updateEvent
 };

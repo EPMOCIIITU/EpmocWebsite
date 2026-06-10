@@ -74,12 +74,12 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const register = async (email, password, role = 'participant') => {
+  const register = async (email, password, role = 'participant', extendedData = {}) => {
     try {
       const res = await fetch(import.meta.env.VITE_API_URL || 'http://localhost:5001/api/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password, role }),
+        body: JSON.stringify({ email, password, role, ...extendedData }),
         credentials: 'include' 
       });
 

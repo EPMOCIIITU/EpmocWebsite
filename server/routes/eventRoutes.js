@@ -13,4 +13,7 @@ router.get('/', getEvents);
 // GET /api/events/:id -> Public
 router.get('/:id', getEventById);
 
+// PUT /api/events/:id -> Core, Head
+router.put('/:id', protect, authorizeRoles('core', 'head'), require('../controllers/eventController').updateEvent);
+
 module.exports = router;
