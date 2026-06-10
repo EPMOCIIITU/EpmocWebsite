@@ -163,6 +163,71 @@ const EventCreationWidget = () => {
   );
 };
 
+const CommunicationsWidget = () => {
+  const [messages, setMessages] = useState([]);
+  const [status, setStatus] = useState('LOADING_TRANSMISSIONS...');
+
+  const fetchMessages = async () => {
+    try {
+      const res = await fetch(import.meta.env.VITE_API_URL ? `${import.meta.env.VITE_API_URL}/contact` : 'http://localhost:5001/api/contact', {
+        credentials: 'include'
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || 'FAILED_TO_FETCH');
+      setMessages(data);
+      setStatus('READY');
+    } catch (err) {
+      setStatus(`ERROR: ${err.message}`);
+    }
+  };
+
+  useEffect(() => {
+    fetchMessages();
+  }, []);
+
+  const handleMarkRead = async (id) => {
+    try {
+      const res = await fetch(import.meta.env.VITE_API_URL ? `${import.meta.env.VITE_API_URL}/contact/${id}/read` : `http://localhost:5001/api/contact/${id}/read`, {
+        method: 'PUT',
+        credentials: 'include'
+      });
+      if (res.ok) fetchMessages();
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  return (
+    <div className="col-span-full mechanical-border p-8 bg-white/5 reveal-dash">
+      <h4 className="mono text-green-500 mb-6 text-xs underline">COMMUNICATIONS_LOG</h4>
+      <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2">
+        {status !== 'READY' ? (
+          <p className="mono text-[10px] text-yellow-500">{status}</p>
+        ) : messages.length === 0 ? (
+          <p className="mono text-[10px] opacity-50">NO_TRANSMISSIONS_FOUND</p>
+        ) : (
+          messages.map(msg => (
+            <div key={msg._id} className={`p-4 border ${msg.isRead ? 'border-white/10 opacity-60' : 'border-green-500 bg-green-500/5'}`}>
+              <div className="flex justify-between items-start mb-4">
+                <div>
+                  <span className="mono text-xs block text-white">SENDER_ID: {msg.senderId}</span>
+                  <span className="text-[9px] mono opacity-50 block mt-1">{new Date(msg.createdAt).toLocaleString()}</span>
+                </div>
+                {!msg.isRead && (
+                  <button onClick={() => handleMarkRead(msg._id)} className="mono text-[9px] px-3 py-1 bg-green-500 text-black hover:bg-white transition-colors">
+                    MARK_ACKNOWLEDGED
+                  </button>
+                )}
+              </div>
+              <p className="mono text-[10px] whitespace-pre-wrap">{msg.messageData}</p>
+            </div>
+          ))
+        )}
+      </div>
+    </div>
+  );
+};
+
 export default function CommandCenter() {
   const { isAuthenticated, role, loading, user } = useAuth();
   const dashRef = useRef(null);
@@ -211,6 +276,7 @@ export default function CommandCenter() {
             <>
               <RoleManagementWidget role={role} />
               <RegistrationsWidget />
+              <CommunicationsWidget />
             </>
           )}
 

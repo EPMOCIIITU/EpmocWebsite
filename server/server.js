@@ -39,6 +39,7 @@ app.use('/api/registrations', require('./routes/registrationRoutes'));
 app.use('/api/teams', require('./routes/teamRoutes'));
 app.use('/api/tasks', require('./routes/taskRoutes'));
 app.use('/api/users', require('./routes/userRoutes'));
+app.use('/api/contact', require('./routes/contactRoutes'));
 
 // 8. Swagger API Documentation
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {

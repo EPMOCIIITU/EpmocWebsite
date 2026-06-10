@@ -1,8 +1,36 @@
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 
 export default function Footer() {
+  const [senderId, setSenderId] = useState('');
+  const [messageData, setMessageData] = useState('');
+  const [status, setStatus] = useState('');
+
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleTransmit = async (e) => {
+    e.preventDefault();
+    if (!senderId || !messageData) return setStatus('ERROR: MISSING_DATA');
+    
+    setStatus('TRANSMITTING...');
+    try {
+      const res = await fetch(import.meta.env.VITE_API_URL ? `${import.meta.env.VITE_API_URL}/contact` : 'http://localhost:5001/api/contact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ senderId, messageData }),
+      });
+      
+      if (!res.ok) throw new Error('TRANSMISSION_FAILED');
+      
+      setStatus('SUCCESS: DIRECTIVE_RECEIVED');
+      setSenderId('');
+      setMessageData('');
+      setTimeout(() => setStatus(''), 3000);
+    } catch (err) {
+      setStatus(`ERROR: ${err.message}`);
+    }
   };
 
   const igLink = import.meta.env.VITE_SOCIAL_IG || 'https://instagram.com/epmoc_iiitu';
@@ -57,13 +85,16 @@ export default function Footer() {
 
           {/* Right Side: Contact Protocol Form (Spans 5 cols) */}
           <div className="lg:col-span-5">
-            <div className="mechanical-border p-5 bg-white/5 h-full">
+            <div className="mechanical-border p-5 bg-white/5 h-full relative">
               <h4 className="mono text-green-500 text-[10px] underline mb-4">TRANSMISSION_PROTOCOL</h4>
-              <form className="space-y-3" onSubmit={(e) => e.preventDefault()}>
-                <input type="text" placeholder="SENDER_ID" className="w-full bg-black border border-white/10 p-2.5 mono text-[9px] outline-none focus:border-green-500 text-white transition-colors" />
-                <textarea placeholder="MESSAGE_DATA" className="w-full bg-black border border-white/10 p-2.5 mono text-[9px] outline-none focus:border-green-500 text-white min-h-[60px] transition-colors"></textarea>
-                <button className="w-full py-2.5 bg-green-500 text-black heading-font text-[10px] hover:bg-white transition-all">INITIATE_TRANSMISSION</button>
+              <form className="space-y-3" onSubmit={handleTransmit}>
+                <input type="text" value={senderId} onChange={e=>setSenderId(e.target.value)} placeholder="SENDER_ID" className="w-full bg-black border border-white/10 p-2.5 mono text-[9px] outline-none focus:border-green-500 text-white transition-colors" />
+                <textarea value={messageData} onChange={e=>setMessageData(e.target.value)} placeholder="MESSAGE_DATA" className="w-full bg-black border border-white/10 p-2.5 mono text-[9px] outline-none focus:border-green-500 text-white min-h-[60px] transition-colors"></textarea>
+                <button type="submit" className="w-full py-2.5 bg-green-500 text-black heading-font text-[10px] hover:bg-white transition-all">INITIATE_TRANSMISSION</button>
               </form>
+              {status && (
+                <p className={`mt-2 mono text-[9px] ${status.includes('ERROR') ? 'text-red-500' : 'text-green-500'}`}>{status}</p>
+              )}
             </div>
           </div>
         </div>
