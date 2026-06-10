@@ -7,7 +7,6 @@ import About from '../components/About';
 import Archive from '../components/Archive';
 import Events from '../components/Events';
 import Team from '../components/Team';
-import Contact from '../components/Contact';
 import Footer from '../components/Footer';
 
 export default function LandingPage() {
@@ -15,12 +14,12 @@ export default function LandingPage() {
 
   useEffect(() => {
     const lenis = new Lenis();
-    
+
     function raf(time) {
       lenis.raf(time);
       requestAnimationFrame(raf);
     }
-    
+
     requestAnimationFrame(raf);
 
     // If there is a hash in the URL on load (e.g. from clicking a nav link on another page), scroll to it
@@ -42,10 +41,9 @@ export default function LandingPage() {
     <main className="relative z-10">
       <Hero />
       <About />
-      <Archive />
       <Events />
+      <Archive />
       <Team />
-      <Contact />
       <Footer />
     </main>
   );

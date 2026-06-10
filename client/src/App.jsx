@@ -39,18 +39,18 @@ function App() {
   return (
     <>
       {loading && <Loader onComplete={() => setLoading(false)} />}
-      
+
       <div className="noise fixed inset-0"></div>
       <Cursor />
       <GridBackground />
-      
+
       <Navbar />
 
       <div id="main-content" style={{ opacity: loading ? 0 : 1, transition: 'opacity 1.5s ease' }}>
         <Routes>
           <Route path="/" element={<LandingPage />} />
-          <Route path="/archive" element={<ArchivePage />} />
           <Route path="/events/:id" element={<EventDetailPage />} />
+          <Route path="/archive" element={<ArchivePage />} />
           <Route path="/auth" element={<AuthPage />} />
           <Route path="/command" element={<CommandCenter />} />
           <Route path="/command/tasks" element={<TaskManagementPage />} />
