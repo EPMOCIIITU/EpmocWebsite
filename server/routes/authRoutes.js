@@ -10,7 +10,14 @@ const loginLimiter = rateLimit({
   message: { message: 'Too many login attempts, please try again later.' }
 });
 
-router.post('/login', loginLimiter, login);
+const conditionalRateLimit = (req, res, next) => {
+  if (process.env.ENABLE_RATE_LIMIT === 'true') {
+    return loginLimiter(req, res, next);
+  }
+  next();
+};
+
+router.post('/login', conditionalRateLimit, login);
 router.post('/register', register); // You can protect this later if needed
 router.post('/refresh', refresh);
 router.post('/logout', logout);

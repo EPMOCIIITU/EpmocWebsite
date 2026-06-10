@@ -1,6 +1,10 @@
 const mongoose = require('mongoose');
 
 const eventSchema = new mongoose.Schema({
+  _id: {
+    type: String,
+    required: true,
+  },
   title: {
     type: String,
     required: true,
@@ -27,6 +31,19 @@ const eventSchema = new mongoose.Schema({
   maxTeamSize: {
     type: Number,
     default: 1,
+  },
+  // --- Details ---
+  description: {
+    type: String,
+    default: '',
+  },
+  venue: {
+    type: String,
+    default: '',
+  },
+  driveGalleryLink: {
+    type: String,
+    default: '',
   },
   // --- Integrations ---
   googleSheetId: {

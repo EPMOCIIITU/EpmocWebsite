@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 
 const registrationSchema = new mongoose.Schema({
   eventId: {
-    type: mongoose.Schema.Types.ObjectId,
+    type: String,
     ref: 'Event',
     required: true,
   },
@@ -27,6 +27,7 @@ const registrationSchema = new mongoose.Schema({
   }]
 }, {
   timestamps: true,
+  collection: 'event_registrations'
 });
 
 // Prevent a user from registering for the same event twice

@@ -1,288 +1,294 @@
 import { useState, useRef, useEffect } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import { useAuth } from '../context/AuthContext';
 
 gsap.registerPlugin(ScrollTrigger);
 
-// --- Internal Dashboard Components ---
+// --- Widgets ---
 
-const MemberDashboard = () => (
-  <>
-    <div className="col-span-2 mechanical-border p-8 bg-white/5">
-      <h4 className="mono text-green-500 mb-6 text-xs underline">MY_TASKS</h4>
-      <div className="space-y-4">
-        <div className="flex justify-between items-center p-4 border border-white/10">
-          <span className="mono text-xs">Draft Mridang Teaser Script</span>
-          <span className="text-[10px] text-yellow-500">PENDING</span>
-        </div>
-      </div>
-    </div>
-    <div className="mechanical-border p-8 bg-green-500/10">
-      <h4 className="mono text-green-500 mb-4 text-xs">ALERTS</h4>
-      <p className="text-[10px] opacity-60">Meeting at 6PM in LHC Room 202.</p>
-    </div>
-  </>
-);
-
-const HeadDashboard = () => {
-  const [title, setTitle] = useState('');
-  const [date, setDate] = useState('');
-  const [requiresTeam, setRequiresTeam] = useState(false);
-  const [maxTeamSize, setMaxTeamSize] = useState(1);
-  const [status, setStatus] = useState('');
-
-  const handleCreate = async () => {
-    setStatus('CREATING_EVENT...');
-    try {
-      const res = await fetch(import.meta.env.VITE_API_URL || 'http://localhost:5001/api/events', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ title, date, requiresTeam, maxTeamSize }),
-        credentials: 'include'
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.message);
-      setStatus('EVENT_CREATED_SUCCESSFULLY');
-      setTitle(''); setDate('');
-    } catch (err) {
-      setStatus(`ERROR: ${err.message}`);
-    }
-  };
+const EventsWidget = ({ layout = 'full' }) => {
+  const [events, setEvents] = useState([]);
+  
+  useEffect(() => {
+    fetch(import.meta.env.VITE_API_URL ? `${import.meta.env.VITE_API_URL}/events` : 'http://localhost:5001/api/events')
+      .then(res => res.json())
+      .then(data => setEvents(data))
+      .catch(err => console.error(err));
+  }, []);
 
   return (
-    <div className="col-span-3 mechanical-border p-8 bg-white/5">
-      <h4 className="mono text-green-500 mb-6 text-xs underline">CREATE_NEW_EVENT</h4>
-      <div className="grid md:grid-cols-2 gap-6">
-        <input type="text" placeholder="EVENT_TITLE" value={title} onChange={(e)=>setTitle(e.target.value)} className="bg-transparent border border-white/10 p-3 mono text-sm outline-none focus:border-green-500" />
-        <input type="date" value={date} onChange={(e)=>setDate(e.target.value)} className="bg-transparent border border-white/10 p-3 mono text-sm outline-none focus:border-green-500 text-white" />
-        <label className="flex items-center gap-3 mono text-xs opacity-70">
-          <input type="checkbox" checked={requiresTeam} onChange={(e)=>setRequiresTeam(e.target.checked)} className="accent-green-500" />
-          REQUIRES_TEAM
-        </label>
-        {requiresTeam && (
-          <input type="number" placeholder="MAX_TEAM_SIZE" min="1" value={maxTeamSize} onChange={(e)=>setMaxTeamSize(e.target.value)} className="bg-transparent border border-white/10 p-3 mono text-sm outline-none focus:border-green-500 text-white" />
+    <div className={`${layout === 'compact' ? 'col-span-full md:col-span-1' : 'col-span-full'} mechanical-border p-8 bg-white/5 reveal-dash`}>
+      <h4 className="mono text-green-500 mb-6 text-xs underline">EVENT_DIRECTIVES</h4>
+      <div className={layout === 'compact' ? 'space-y-4' : 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4'}>
+        {events.length === 0 ? (
+          <p className="mono text-[10px] opacity-50 p-3">NO_DATA_AVAILABLE</p>
+        ) : (
+          events.map(ev => (
+            <Link to={`/events/${ev._id}`} key={ev._id} className="block border border-white/10 p-4 hover:bg-white/5 transition-colors">
+              <span className="mono text-xs block text-green-500 mb-1">{ev.title}</span>
+              <span className="text-[10px] mono opacity-50 block">STATUS: {new Date(ev.date) < new Date() ? 'COMPLETED' : 'UPCOMING'}</span>
+            </Link>
+          ))
         )}
       </div>
-      <button onClick={handleCreate} className="mt-6 w-full py-3 bg-green-500 text-black heading-font text-sm hover:bg-white transition-all">INITIALIZE_EVENT</button>
-      {status && <p className="mt-4 mono text-xs text-yellow-500">{status}</p>}
     </div>
   );
 };
 
-const CoreDashboard = () => {
-  const [events, setEvents] = useState([]);
-  const [selectedEventId, setSelectedEventId] = useState('');
-  const [registrations, setRegistrations] = useState([]);
-  const [status, setStatus] = useState('LOADING_EVENTS...');
+const TasksWidget = ({ role, navigate }) => {
+  return (
+    <div className="col-span-full md:col-span-2 mechanical-border p-8 bg-white/5 reveal-dash relative flex flex-col justify-center items-center group hover:bg-white/10 transition-colors cursor-pointer" onClick={() => navigate('/command/tasks')}>
+      <h4 className="heading-font text-3xl text-green-500 mb-2">TASK_CONTROL</h4>
+      <p className="mono text-[10px] opacity-70 mb-6 text-center">ACCESS_AND_ASSIGN_PERSONNEL_DIRECTIVES</p>
+      <button className="mono text-xs px-6 py-2 border border-green-500 text-green-500 group-hover:bg-green-500 group-hover:text-black transition-all">
+        ENTER_PORTAL &gt;
+      </button>
+    </div>
+  );
+};
 
+const RoleManagementLinkWidget = ({ navigate }) => {
+  return (
+    <div className="col-span-full mechanical-border p-8 bg-white/5 reveal-dash relative flex flex-col justify-center items-center group hover:bg-white/10 transition-colors cursor-pointer" onClick={() => navigate('/command/roles')}>
+      <h4 className="heading-font text-3xl text-green-500 mb-2">PERSONNEL</h4>
+      <p className="mono text-[10px] opacity-70 mb-6 text-center">ACCESS_ROLE_MANAGEMENT_AND_FILTERS</p>
+      <button className="mono text-xs px-6 py-2 border border-green-500 text-green-500 group-hover:bg-green-500 group-hover:text-black transition-all">
+        VIEW_INDEX &gt;
+      </button>
+    </div>
+  );
+};
+
+const DepartmentSelectionWidget = ({ user }) => {
+  const [departments, setDepartments] = useState(user.memberDepartments || []);
+
+  const ALLOWED_DEPARTMENTS = [
+    'Design', 'PR', 'Public Speaking and Marketing', 'Content', 
+    'Technical', 'Social Media', 'Coverage and Video Editing', 
+    'volunteering', 'Decoration'
+  ];
+
+  const toggleDepartment = async (deptToToggle) => {
+    const updatedDepartments = departments.includes(deptToToggle)
+      ? departments.filter(d => d !== deptToToggle)
+      : [...departments, deptToToggle];
+
+    setDepartments(updatedDepartments);
+
+    try {
+      await fetch(import.meta.env.VITE_API_URL ? `${import.meta.env.VITE_API_URL}/users/${user._id}/departments` : `http://localhost:5001/api/users/${user._id}/departments`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ memberDepartments: updatedDepartments }),
+        credentials: 'include'
+      });
+    } catch (err) {
+      alert(`Failed to save department: ${err.message}`);
+    }
+  };
+
+  return (
+    <div className="col-span-full mechanical-border p-8 bg-black/50 reveal-dash border-green-500/30">
+      <h4 className="mono text-green-500 mb-4 text-xs underline">MY_DEPARTMENTS_PROFILE</h4>
+      <p className="mono text-[10px] opacity-70 mb-6">SELECT_THE_DEPARTMENTS_YOU_ARE_WORKING_IN</p>
+      <div className="flex flex-wrap gap-3">
+        {ALLOWED_DEPARTMENTS.map(dept => {
+          const isAssigned = departments.includes(dept);
+          return (
+            <button 
+              key={dept}
+              onClick={() => toggleDepartment(dept)}
+              className={`mono text-[10px] px-4 py-2 border transition-all ${
+                isAssigned 
+                  ? 'border-green-500 bg-green-500 text-black shadow-[0_0_10px_rgba(34,197,94,0.3)]' 
+                  : 'border-white/20 text-white/50 hover:border-green-500/50 hover:text-green-500'
+              }`}
+            >
+              {dept}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+};
+
+const RegistrationsWidget = ({ layout = 'compact' }) => {
+  const [events, setEvents] = useState([]);
+  
   useEffect(() => {
-    fetch(import.meta.env.VITE_API_URL || 'http://localhost:5001/api/events')
+    fetch(import.meta.env.VITE_API_URL ? `${import.meta.env.VITE_API_URL}/events` : 'http://localhost:5001/api/events')
       .then(res => res.json())
-      .then(data => { setEvents(data); setStatus('READY'); })
-      .catch(err => setStatus('ERROR_FETCHING_EVENTS'));
+      .then(data => setEvents(data))
+      .catch(err => console.error(err));
   }, []);
 
-  const fetchRegistrations = async (eventId) => {
-    setSelectedEventId(eventId);
-    if (!eventId) return setRegistrations([]);
-    
-    setStatus('FETCHING_DATA...');
+  return (
+    <div className={`${layout === 'compact' ? 'col-span-full md:col-span-1' : 'col-span-full'} mechanical-border p-8 bg-black/50 reveal-dash relative`}>
+      <h4 className="mono text-green-500 mb-6 text-xs underline">EVENT_DATA_INDEX</h4>
+      <div className={layout === 'compact' ? 'space-y-4' : 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4'}>
+        {events.map(ev => (
+          <Link key={ev._id} to={`/command/events/${ev._id}/manage`} className="block border border-white/10 p-4 hover:bg-white/5 transition-colors group">
+            <span className="mono text-xs block text-white mb-2">{ev.title}</span>
+            <div className="flex justify-between items-center">
+              <span className="text-[10px] mono opacity-50 block">{new Date(ev.date).toLocaleDateString()}</span>
+              <span className="text-[10px] mono text-green-500 opacity-0 group-hover:opacity-100 transition-opacity">MANAGE_EVENT &gt;</span>
+            </div>
+          </Link>
+        ))}
+        {events.length === 0 && <p className="mono text-[10px] opacity-50 p-4">NO_EVENTS_FOUND</p>}
+      </div>
+    </div>
+  );
+};
+
+const EventCreationWidget = ({ navigate }) => {
+  return (
+    <div className="col-span-full mechanical-border p-8 bg-green-900/10 border-green-500/30 reveal-dash relative flex flex-col justify-center items-center group hover:bg-green-500/20 transition-colors cursor-pointer" onClick={() => navigate('/command/events/new')}>
+      <h4 className="heading-font text-3xl text-green-500 mb-2">INITIALIZE_DIRECTIVE</h4>
+      <p className="mono text-[10px] opacity-70 mb-6 text-center text-green-500">CORE_OVERRIDE: CREATE_NEW_EVENT</p>
+      <button className="mono text-xs px-6 py-2 border border-green-500 text-green-500 group-hover:bg-green-500 group-hover:text-black transition-all">
+        OPEN_CREATION_MATRIX &gt;
+      </button>
+    </div>
+  );
+};
+
+const CommunicationsWidget = () => {
+  const [messages, setMessages] = useState([]);
+  const [status, setStatus] = useState('LOADING_TRANSMISSIONS...');
+
+  const fetchMessages = async () => {
     try {
-      const res = await fetch(`http://localhost:5001/api/registrations/${eventId}`, {
+      const res = await fetch(import.meta.env.VITE_API_URL ? `${import.meta.env.VITE_API_URL}/contact` : 'http://localhost:5001/api/contact', {
         credentials: 'include'
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.message);
-      setRegistrations(data);
-      setStatus('DATA_RETRIEVED');
+      if (!res.ok) throw new Error(data.message || 'FAILED_TO_FETCH');
+      setMessages(data);
+      setStatus('READY');
     } catch (err) {
       setStatus(`ERROR: ${err.message}`);
     }
   };
 
+  useEffect(() => {
+    fetchMessages();
+  }, []);
+
+  const handleMarkRead = async (id) => {
+    try {
+      const res = await fetch(import.meta.env.VITE_API_URL ? `${import.meta.env.VITE_API_URL}/contact/${id}/read` : `http://localhost:5001/api/contact/${id}/read`, {
+        method: 'PUT',
+        credentials: 'include'
+      });
+      if (res.ok) fetchMessages();
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
   return (
-    <div className="col-span-3 mechanical-border p-8 bg-black/50">
-      <h4 className="mono text-green-500 mb-4 text-xs underline">REGISTRATION_DATA_INDEX</h4>
-      <div className="mb-6 flex gap-4 items-center">
-        <select onChange={(e) => fetchRegistrations(e.target.value)} value={selectedEventId} className="w-64 bg-black p-3 mono text-[10px] border border-white/20 outline-none text-white">
-          <option value="">SELECT_EVENT...</option>
-          {events.map(ev => <option key={ev._id} value={ev._id}>{ev.title}</option>)}
-        </select>
-        <span className="mono text-[10px] text-yellow-500">{status}</span>
-      </div>
-      
-      <div className="overflow-x-auto">
-        <table className="w-full mono text-[10px] text-left opacity-80 border-collapse">
-          <thead>
-            <tr className="border-b border-white/20 text-green-500">
-              <th className="p-2">REG_ID</th>
-              <th className="p-2">USER_EMAIL</th>
-              <th className="p-2">TEAM_NAME</th>
-              <th className="p-2">DATE</th>
-            </tr>
-          </thead>
-          <tbody>
-            {registrations.length === 0 ? (
-              <tr><td colSpan="4" className="p-4 text-center opacity-50">NO_DATA_FOUND</td></tr>
-            ) : (
-              registrations.map(reg => (
-                <tr key={reg._id} className="border-b border-white/10 hover:bg-white/5">
-                  <td className="p-2">{reg._id.slice(-6)}</td>
-                  <td className="p-2">{reg.userId?.email || 'N/A'}</td>
-                  <td className="p-2">{reg.teamId?.name || 'INDIVIDUAL'}</td>
-                  <td className="p-2">{new Date(reg.createdAt).toLocaleDateString()}</td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
+    <div className="col-span-full mechanical-border p-8 bg-white/5 reveal-dash">
+      <h4 className="mono text-green-500 mb-6 text-xs underline">COMMUNICATIONS_LOG</h4>
+      <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2">
+        {status !== 'READY' ? (
+          <p className="mono text-[10px] text-yellow-500">{status}</p>
+        ) : messages.length === 0 ? (
+          <p className="mono text-[10px] opacity-50">NO_TRANSMISSIONS_FOUND</p>
+        ) : (
+          messages.map(msg => (
+            <div key={msg._id} className={`p-4 border ${msg.isRead ? 'border-white/10 opacity-60' : 'border-green-500 bg-green-500/5'}`}>
+              <div className="flex justify-between items-start mb-4">
+                <div>
+                  <span className="mono text-xs block text-white">SENDER_ID: {msg.senderId}</span>
+                  <span className="text-[9px] mono opacity-50 block mt-1">{new Date(msg.createdAt).toLocaleString()}</span>
+                </div>
+                {!msg.isRead && (
+                  <button onClick={() => handleMarkRead(msg._id)} className="mono text-[9px] px-3 py-1 bg-green-500 text-black hover:bg-white transition-colors">
+                    MARK_ACKNOWLEDGED
+                  </button>
+                )}
+              </div>
+              <p className="mono text-[10px] whitespace-pre-wrap">{msg.messageData}</p>
+            </div>
+          ))
+        )}
       </div>
     </div>
   );
 };
 
-
 export default function CommandCenter() {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [role, setRole] = useState('member');
-  const authRef = useRef(null);
+  const { isAuthenticated, role, loading, user } = useAuth();
   const dashRef = useRef(null);
-  const dashContentRef = useRef(null);
   const sectionRef = useRef(null);
-
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
-    const ctx = gsap.context(() => {
-      gsap.utils.toArray('.reveal').forEach(el => {
-        gsap.fromTo(el,
-          { opacity: 0, y: 30 },
-          {
-            scrollTrigger: { trigger: el, start: "top 90%" },
-            opacity: 1,
-            y: 0,
-            duration: 1
-          }
-        );
-      });
-    }, sectionRef);
-    return () => ctx.revert();
-  }, []);
-
-  const handleLogin = async () => {
-    if (!email || !password) {
-      setError('Please enter both email and password');
-      return;
+    if (!loading && !isAuthenticated) {
+      navigate('/auth', { replace: true });
     }
-
-    setLoading(true);
-    setError('');
-
-    try {
-      const res = await fetch(import.meta.env.VITE_API_URL || 'http://localhost:5001/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
-        credentials: 'include' 
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        throw new Error(data.message || 'Login failed');
-      }
-
-      setRole(data.role);
-
-      gsap.to(authRef.current, { 
-        opacity: 0, 
-        scale: 0.9, 
-        duration: 0.5, 
-        onComplete: () => {
-          setIsAuthenticated(true);
-        }
-      });
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
-  };
+  }, [isAuthenticated, loading, navigate]);
 
   useEffect(() => {
     if (isAuthenticated && dashRef.current) {
-      gsap.fromTo(dashRef.current, { opacity: 0 }, { opacity: 1, duration: 1 });
+      gsap.fromTo('.reveal-dash', 
+        { opacity: 0, y: 20 }, 
+        { opacity: 1, y: 0, duration: 0.8, stagger: 0.1, ease: 'power2.out' }
+      );
     }
   }, [isAuthenticated]);
 
-  const switchRole = (newRole) => {
-    gsap.to(dashContentRef.current, { 
-      opacity: 0, 
-      y: 10, 
-      duration: 0.3, 
-      onComplete: () => {
-        setRole(newRole);
-        gsap.to(dashContentRef.current, { opacity: 1, y: 0, duration: 0.5 });
-      }
-    });
-  };
-
-  const renderDashboard = () => {
-    switch(role) {
-      case 'core': return <CoreDashboard />;
-      case 'head': return <HeadDashboard />;
-      default: return <MemberDashboard />;
-    }
-  };
+  if (loading || !isAuthenticated) return null;
 
   return (
-    <section id="command" ref={sectionRef} className="min-h-screen p-10 md:p-20 flex flex-col items-center">
-      {!isAuthenticated ? (
-        <div id="auth-ui" ref={authRef} className="w-full max-w-lg mechanical-border p-10 bg-white/5 reveal">
-          <h2 className="heading-font text-3xl mb-10 text-center">Command Access</h2>
-          {error && <p className="text-red-500 mono text-xs mb-4 text-center">{error}</p>}
-          <div className="space-y-6">
-            <input 
-              type="text" 
-              placeholder="EMAIL" 
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full bg-transparent border border-white/10 p-3 mono text-sm outline-none focus:border-green-500 text-white" 
-            />
-            <input 
-              type="password" 
-              placeholder="ACCESS_KEY" 
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full bg-transparent border border-white/10 p-3 mono text-sm outline-none focus:border-green-500 text-white" 
-            />
-            <button 
-              onClick={handleLogin} 
-              disabled={loading}
-              className="w-full py-4 border border-green-500 text-green-500 heading-font text-sm hover:bg-green-500 hover:text-black transition-all disabled:opacity-50"
-            >
-              {loading ? 'AUTHENTICATING...' : 'INITIALIZE_SESSION'}
-            </button>
+    <section id="command" ref={sectionRef} className="min-h-screen pt-32 pb-20 px-10 md:px-20 flex flex-col items-center">
+      <div id="dashboard-ui" ref={dashRef} className="w-full max-w-6xl">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-12 border-b border-white/20 pb-6">
+          <div>
+            <h2 className="heading-font text-5xl text-white">COMMAND.CENTER</h2>
+            <p className="mono text-xs opacity-50 mt-2">LOGGED_IN_AS: {user?.email} // ROLE: <span className="text-green-500 uppercase">{role}</span></p>
           </div>
         </div>
-      ) : (
-        <div id="dashboard-ui" ref={dashRef} className="w-full max-w-6xl">
-          <div className="flex justify-between items-center mb-12">
-            <h2 className="heading-font text-5xl">COMMAND.CENTER</h2>
-            <div className="flex gap-2">
-              <button onClick={() => switchRole('member')} className={`dash-tab px-4 py-2 mono text-[10px] border border-white/20 ${role === 'member' ? 'active' : ''}`}>MEMBER</button>
-              <button onClick={() => switchRole('head')} className={`dash-tab px-4 py-2 mono text-[10px] border border-white/20 ${role === 'head' ? 'active' : ''}`}>HEAD</button>
-              <button onClick={() => switchRole('core')} className={`dash-tab px-4 py-2 mono text-[10px] border border-white/20 ${role === 'core' ? 'active' : ''}`}>CORE</button>
-            </div>
-          </div>
-          <div id="dash-content" ref={dashContentRef} className="grid md:grid-cols-3 gap-8">
-            {renderDashboard()}
-          </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          
+          {/* Top Left Column */}
+          {role === 'member' && <EventsWidget layout="compact" />}
+          {(role === 'head' || role === 'core') && <RegistrationsWidget layout="compact" />}
+
+          {/* Top Right 2-Columns */}
+          {(role === 'member' || role === 'head' || role === 'core') && (
+            <TasksWidget role={role} navigate={navigate} />
+          )}
+
+          {/* Full Width for Participants */}
+          {role === 'participant' && <EventsWidget layout="full" />}
+
+          {/* Department Selection (Only for Members) */}
+          {role === 'member' && (
+            <DepartmentSelectionWidget user={user} />
+          )}
+
+          {/* Head Level (Level 3) */}
+          {(role === 'head' || role === 'core') && (
+            <>
+              <RoleManagementLinkWidget navigate={navigate} />
+              <EventsWidget layout="full" />
+              <CommunicationsWidget />
+            </>
+          )}
+
+          {/* Core Level (Level 4) */}
+          {role === 'core' && (
+            <EventCreationWidget navigate={navigate} />
+          )}
+
         </div>
-      )}
+      </div>
     </section>
   );
 }
