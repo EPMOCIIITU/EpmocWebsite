@@ -40,13 +40,32 @@ export default function EventDetailPage() {
     }
   }, [event]);
 
-  const handleRegister = (e) => {
+  const handleRegister = async (e) => {
     e.preventDefault();
     setRegisterStatus('PROCESSING_REGISTRATION...');
-    // Real implementation would hit POST /api/registrations
-    setTimeout(() => {
+    try {
+      let endpoint = import.meta.env.VITE_API_URL ? `${import.meta.env.VITE_API_URL}/registrations` : 'http://localhost:5001/api/registrations';
+      let payload = { eventId: id };
+
+      if (event.requiresTeam) {
+        endpoint = import.meta.env.VITE_API_URL ? `${import.meta.env.VITE_API_URL}/teams` : 'http://localhost:5001/api/teams';
+        payload = { eventId: id, name: teamName };
+      }
+
+      const res = await fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+        credentials: 'include'
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || 'Registration failed');
+
       setRegisterStatus('REGISTRATION_SUCCESSFUL // LOGGED');
-    }, 1500);
+    } catch (err) {
+      setRegisterStatus(`ERROR: ${err.message}`);
+    }
   };
 
   if (loading) {

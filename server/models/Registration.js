@@ -27,6 +27,7 @@ const registrationSchema = new mongoose.Schema({
   }]
 }, {
   timestamps: true,
+  collection: 'event_registrations'
 });
 
 // Prevent a user from registering for the same event twice

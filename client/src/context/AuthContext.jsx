@@ -16,7 +16,7 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        const res = await fetch(import.meta.env.VITE_API_URL || 'http://localhost:5001/api/auth/refresh', {
+        const res = await fetch(import.meta.env.VITE_API_URL ? `${import.meta.env.VITE_API_URL}/auth/refresh` : 'http://localhost:5001/api/auth/refresh', {
           method: 'POST',
           credentials: 'include'
         });
@@ -47,7 +47,7 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (email, password) => {
     try {
-      const res = await fetch(import.meta.env.VITE_API_URL || 'http://localhost:5001/api/auth/login', {
+      const res = await fetch(import.meta.env.VITE_API_URL ? `${import.meta.env.VITE_API_URL}/auth/login` : 'http://localhost:5001/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),
@@ -76,7 +76,7 @@ export const AuthProvider = ({ children }) => {
 
   const register = async (email, password, role = 'participant', extendedData = {}) => {
     try {
-      const res = await fetch(import.meta.env.VITE_API_URL || 'http://localhost:5001/api/auth/register', {
+      const res = await fetch(import.meta.env.VITE_API_URL ? `${import.meta.env.VITE_API_URL}/auth/register` : 'http://localhost:5001/api/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password, role, ...extendedData }),
@@ -93,7 +93,7 @@ export const AuthProvider = ({ children }) => {
 
   const logout = async () => {
     try {
-      await fetch(import.meta.env.VITE_API_URL || 'http://localhost:5001/api/auth/logout', {
+      await fetch(import.meta.env.VITE_API_URL ? `${import.meta.env.VITE_API_URL}/auth/logout` : 'http://localhost:5001/api/auth/logout', {
         method: 'POST',
         credentials: 'include' 
       });
