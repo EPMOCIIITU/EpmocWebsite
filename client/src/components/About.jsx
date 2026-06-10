@@ -35,7 +35,7 @@ export default function About() {
   }, []);
 
   return (
-    <section id="about" ref={sectionRef} className="min-h-screen p-10 md:p-20 border-t border-white/10">
+    <section id="about" ref={sectionRef} className="py-20 md:py-32 px-10 md:px-20 border-t border-white/10">
       <div className="max-w-6xl mx-auto">
         <h2 className="heading-font text-5xl mb-12 reveal">EPMOC.SYSTEM_OVERVIEW</h2>
         <div className="grid md:grid-cols-3 gap-8">

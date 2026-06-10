@@ -117,29 +117,118 @@ const DepartmentSelectionWidget = ({ user }) => {
 
 const RegistrationsWidget = ({ layout = 'compact' }) => {
   const [events, setEvents] = useState([]);
+  const [deletePromptOpen, setDeletePromptOpen] = useState(false);
+  const [eventToDelete, setEventToDelete] = useState(null);
+  const [deleteInputText, setDeleteInputText] = useState('');
   
-  useEffect(() => {
+  const fetchEvents = () => {
     fetch(import.meta.env.VITE_API_URL ? `${import.meta.env.VITE_API_URL}/events` : 'http://localhost:5001/api/events')
       .then(res => res.json())
       .then(data => setEvents(data))
       .catch(err => console.error(err));
+  };
+
+  useEffect(() => {
+    fetchEvents();
   }, []);
+
+  const initiateDelete = (e, ev) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setEventToDelete(ev);
+    setDeleteInputText('');
+    setDeletePromptOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!eventToDelete) return;
+
+    if (deleteInputText !== eventToDelete.title) {
+      alert('Confirmation text did not match. Aborting deletion.');
+      setDeletePromptOpen(false);
+      return;
+    }
+
+    try {
+      const res = await fetch(import.meta.env.VITE_API_URL ? `${import.meta.env.VITE_API_URL}/events/${eventToDelete._id}` : `http://localhost:5001/api/events/${eventToDelete._id}`, {
+        method: 'DELETE',
+        credentials: 'include'
+      });
+      if (!res.ok) throw new Error('Delete failed');
+      setEvents(events.filter(item => item._id !== eventToDelete._id));
+      setDeletePromptOpen(false);
+      setEventToDelete(null);
+    } catch (err) {
+      alert(`Error: ${err.message}`);
+    }
+  };
+
+  const cancelDelete = () => {
+    setDeletePromptOpen(false);
+    setEventToDelete(null);
+    setDeleteInputText('');
+  };
 
   return (
     <div className={`${layout === 'compact' ? 'col-span-full md:col-span-1' : 'col-span-full'} mechanical-border p-8 bg-black/50 reveal-dash relative`}>
       <h4 className="mono text-green-500 mb-6 text-xs underline">EVENT_DATA_INDEX</h4>
       <div className={layout === 'compact' ? 'space-y-4' : 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4'}>
         {events.map(ev => (
-          <Link key={ev._id} to={`/command/events/${ev._id}/manage`} className="block border border-white/10 p-4 hover:bg-white/5 transition-colors group">
+          <div key={ev._id} className="border border-white/10 p-4 hover:bg-white/5 transition-colors group relative">
             <span className="mono text-xs block text-white mb-2">{ev.title}</span>
             <div className="flex justify-between items-center">
               <span className="text-[10px] mono opacity-50 block">{new Date(ev.date).toLocaleDateString()}</span>
-              <span className="text-[10px] mono text-green-500 opacity-0 group-hover:opacity-100 transition-opacity">MANAGE_EVENT &gt;</span>
+              
+              <div className="flex gap-3 opacity-0 group-hover:opacity-100 transition-opacity">
+                <Link to={`/command/events/${ev._id}/manage`} className="text-green-500 hover:text-white transition-colors" title="Edit Event">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"></path></svg>
+                </Link>
+                <button onClick={(e) => initiateDelete(e, ev)} className="text-red-500 hover:text-white transition-colors" title="Delete Event">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path></svg>
+                </button>
+              </div>
             </div>
-          </Link>
+          </div>
         ))}
         {events.length === 0 && <p className="mono text-[10px] opacity-50 p-4">NO_EVENTS_FOUND</p>}
       </div>
+
+      {deletePromptOpen && eventToDelete && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="mechanical-border bg-neutral-900 p-8 w-full max-w-md shadow-2xl border-red-500/50">
+            <h3 className="mono text-red-500 text-xs mb-4 flex items-center gap-2">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"></path><path d="M12 9v4"></path><path d="M12 17h.01"></path></svg>
+              DANGER_ZONE
+            </h3>
+            <p className="mono text-[10px] text-white opacity-80 mb-6 leading-relaxed">
+              WARNING: This action is irreversible. It will permanently purge the event data from the database. <br/><br/>
+              Type <span className="bg-red-500/20 text-red-400 px-1">{eventToDelete.title}</span> to confirm deletion.
+            </p>
+            <input 
+              type="text" 
+              value={deleteInputText}
+              onChange={(e) => setDeleteInputText(e.target.value)}
+              placeholder={eventToDelete.title}
+              className="w-full bg-black border border-red-500/30 p-3 mono text-xs outline-none focus:border-red-500 text-white mb-6"
+            />
+            <div className="flex gap-4">
+              <button 
+                onClick={confirmDelete}
+                disabled={deleteInputText !== eventToDelete.title}
+                className="flex-1 py-3 bg-red-500 text-black hover:bg-red-400 disabled:opacity-50 disabled:hover:bg-red-500 transition-colors mono text-[10px]"
+              >
+                CONFIRM_DELETE
+              </button>
+              <button 
+                onClick={cancelDelete}
+                className="flex-1 py-3 border border-white/20 hover:bg-white/10 transition-colors mono text-[10px] text-white"
+              >
+                ABORT
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

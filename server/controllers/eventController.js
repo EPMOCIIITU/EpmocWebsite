@@ -101,9 +101,25 @@ const updateEvent = async (req, res) => {
   }
 };
 
+// @desc    Delete an event
+// @route   DELETE /api/events/:id
+// @access  Private (Core)
+const deleteEvent = async (req, res) => {
+  try {
+    const event = await Event.findById(req.params.id);
+    if (!event) return res.status(404).json({ message: 'Event not found' });
+
+    await event.deleteOne();
+    res.status(200).json({ message: 'Event removed' });
+  } catch (error) {
+    res.status(500).json({ message: 'Error deleting event', error: error.message });
+  }
+};
+
 module.exports = {
   createEvent,
   getEvents,
   getEventById,
-  updateEvent
+  updateEvent,
+  deleteEvent
 };
