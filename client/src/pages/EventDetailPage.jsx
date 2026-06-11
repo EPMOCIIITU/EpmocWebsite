@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import gsap from 'gsap';
 import { useAuth } from '../context/AuthContext';
 
@@ -107,7 +107,7 @@ export default function EventDetailPage() {
 
       <div className="relative w-full aspect-[21/9] bg-neutral-900 mb-12 mechanical-border overflow-hidden reveal-event">
         {event.coverImage ? (
-          <img src={event.coverImage} className="w-full h-full object-cover grayscale opacity-60" alt={event.title} />
+          <img src={event.coverImage.includes('drive.google.com/file/d/') ? `https://drive.google.com/uc?export=view&id=${event.coverImage.match(/d\/([a-zA-Z0-9_-]+)/)?.[1]}` : event.coverImage} onError={(e) => { e.target.onerror = null; e.target.style.display = 'none'; e.target.parentNode.innerHTML = '<div class="w-full h-full flex items-center justify-center mono text-white/20 text-xs">INVALID_IMAGE_URL</div>'; }} className="w-full h-full object-cover grayscale opacity-60" alt={event.title} />
         ) : (
           <div className="w-full h-full flex items-center justify-center mono text-white/20 text-xs">NO_COVER_IMAGE</div>
         )}

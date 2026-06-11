@@ -2,13 +2,15 @@ const authService = require('../services/authService');
 
 // Helper to set cookies securely
 const setCookies = (res, accessToken, refreshToken) => {
-  // Use secure: true in production (HTTPS)
   const isProduction = process.env.NODE_ENV === 'production';
+  const domain = process.env.COOKIE_DOMAIN || undefined;
+  const sameSite = process.env.COOKIE_SAMESITE || 'strict';
   
   res.cookie('accessToken', accessToken, {
     httpOnly: true,
     secure: isProduction,
-    sameSite: 'strict',
+    sameSite: sameSite,
+    domain: domain,
     maxAge: 5 * 60 * 1000 // 5 minutes
   });
 
@@ -16,7 +18,8 @@ const setCookies = (res, accessToken, refreshToken) => {
     res.cookie('refreshToken', refreshToken, {
       httpOnly: true,
       secure: isProduction,
-      sameSite: 'strict',
+      sameSite: sameSite,
+      domain: domain,
       maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
     });
   }

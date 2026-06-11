@@ -16,6 +16,10 @@ export default function EventManagePage() {
   const [isEditing, setIsEditing] = useState(false);
   const [editData, setEditData] = useState({});
 
+  // Delete state
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [deleteConfirmText, setDeleteConfirmText] = useState('');
+
   useEffect(() => {
     if (!loading && (!isAuthenticated || (role !== 'head' && role !== 'core'))) {
       navigate('/command', { replace: true });
@@ -83,6 +87,24 @@ export default function EventManagePage() {
     }
   };
 
+  const handleDelete = async () => {
+    if (deleteConfirmText !== event.title) {
+      return alert('Confirmation text does not match the event title exactly.');
+    }
+    setStatus('DELETING...');
+    try {
+      const res = await fetch(import.meta.env.VITE_API_URL ? `${import.meta.env.VITE_API_URL}/events/${id}` : `http://localhost:5001/api/events/${id}`, {
+        method: 'DELETE',
+        credentials: 'include'
+      });
+      if (!res.ok) throw new Error('Delete failed');
+      navigate('/command', { replace: true });
+    } catch (err) {
+      setStatus(`ERROR: ${err.message}`);
+      setIsDeleting(false);
+    }
+  };
+
   if (loading || !isAuthenticated || (role !== 'head' && role !== 'core')) return null;
 
   return (
@@ -131,6 +153,10 @@ export default function EventManagePage() {
                   <div>
                     <label className="block mono text-[10px] opacity-50 mb-1">DRIVE_GALLERY_LINK</label>
                     <input type="url" value={editData.driveGalleryLink} onChange={e=>setEditData({...editData, driveGalleryLink: e.target.value})} className="w-full bg-black border border-white/20 p-2 mono text-[10px] outline-none focus:border-green-500 text-white" />
+                  </div>
+                  <div>
+                    <label className="block mono text-[10px] opacity-50 mb-1">COVER_IMAGE_URL</label>
+                    <input type="url" value={editData.coverImage} onChange={e=>setEditData({...editData, coverImage: e.target.value})} className="w-full bg-black border border-white/20 p-2 mono text-[10px] outline-none focus:border-green-500 text-white" />
                   </div>
                   <div>
                     <label className="block mono text-[10px] opacity-50 mb-1">DESCRIPTION</label>

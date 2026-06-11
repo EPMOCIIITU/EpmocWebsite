@@ -16,4 +16,7 @@ router.get('/:id', getEventById);
 // PUT /api/events/:id -> Core, Head
 router.put('/:id', protect, authorizeRoles('core', 'head'), require('../controllers/eventController').updateEvent);
 
+// DELETE /api/events/:id -> Core
+router.delete('/:id', protect, authorizeRoles('core'), require('../controllers/eventController').deleteEvent);
+
 module.exports = router;

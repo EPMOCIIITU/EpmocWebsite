@@ -59,7 +59,7 @@ export default function Events() {
               <div className="mechanical-border p-10 bg-white/5 flex flex-col md:flex-row gap-8 reveal group-hover:bg-white/10 transition-colors">
                 <div className="w-full md:w-1/3 aspect-video bg-neutral-900 overflow-hidden flex items-center justify-center">
                   {event.coverImage ? (
-                    <img src={event.coverImage} className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all" alt={event.title} />
+                    <img src={event.coverImage.includes('drive.google.com/file/d/') ? `https://drive.google.com/uc?export=view&id=${event.coverImage.match(/d\/([a-zA-Z0-9_-]+)/)?.[1]}` : event.coverImage} onError={(e) => { e.target.onerror = null; e.target.style.display = 'none'; e.target.parentNode.innerHTML = '<span class="mono text-white/20 text-xs">INVALID_IMAGE_URL</span>'; }} className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all" alt={event.title} />
                   ) : (
                     <span className="mono text-white/20 text-xs">NO_IMAGE_DATA</span>
                   )}

@@ -14,25 +14,26 @@ export default function LandingPage() {
 
   useEffect(() => {
     const lenis = new Lenis();
+    let rafId;
 
     function raf(time) {
       lenis.raf(time);
-      requestAnimationFrame(raf);
+      rafId = requestAnimationFrame(raf);
     }
 
-    requestAnimationFrame(raf);
+    rafId = requestAnimationFrame(raf);
 
-    // If there is a hash in the URL on load (e.g. from clicking a nav link on another page), scroll to it
     if (hash) {
       setTimeout(() => {
         const element = document.querySelector(hash);
         if (element) {
           lenis.scrollTo(element, { offset: 0 });
         }
-      }, 500); // Wait a moment for GSAP to set up
+      }, 500);
     }
 
     return () => {
+      cancelAnimationFrame(rafId);
       lenis.destroy();
     };
   }, [hash]);
