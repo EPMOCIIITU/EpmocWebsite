@@ -14,6 +14,7 @@ import PageTransition from './components/PageTransition';
 import LandingPage from './pages/LandingPage';
 import AuthPage from './pages/AuthPage';
 import ArchivePage from './pages/ArchivePage';
+import GalleryPage from './pages/GalleryPage';
 import EventDetailPage from './pages/EventDetailPage';
 import CommandCenter from './components/CommandCenter';
 import TaskManagementPage from './pages/TaskManagementPage';
@@ -55,6 +56,7 @@ function App() {
             <Route path="/" element={<LandingPage />} />
             <Route path="/events/:id" element={<EventDetailPage />} />
             <Route path="/archive" element={<ArchivePage />} />
+            <Route path="/gallery" element={<GalleryPage />} />
             <Route path="/auth" element={<AuthPage />} />
             <Route path="/command" element={<CommandCenter />} />
             <Route path="/command/tasks" element={<TaskManagementPage />} />
