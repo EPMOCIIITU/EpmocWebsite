@@ -61,6 +61,100 @@ const RoleManagementLinkWidget = ({ navigate }) => {
   );
 };
 
+const MemberRequestWidget = () => {
+  const [contactNumber, setContactNumber] = useState('');
+  const [requestMessage, setRequestMessage] = useState('');
+  const [status, setStatus] = useState('');
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!contactNumber || !requestMessage) return setStatus('ERROR: MISSING_DATA');
+    
+    setStatus('PROCESSING...');
+    try {
+      const res = await fetch(import.meta.env.VITE_API_URL ? `${import.meta.env.VITE_API_URL}/join` : 'http://localhost:5001/api/join', {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('epmoc_auth') ? JSON.parse(localStorage.getItem('epmoc_auth')).token : ''}`
+        },
+        credentials: 'true', // ensure cookies are sent
+        body: JSON.stringify({ contactNumber, requestMessage }),
+      });
+      
+      if (!res.ok) throw new Error('REQUEST_FAILED');
+      
+      setStatus('SUCCESS: REQUEST_SUBMITTED');
+      setContactNumber('');
+      setRequestMessage('');
+    } catch (err) {
+      setStatus(`ERROR: ${err.message}`);
+    }
+  };
+
+  return (
+    <div className="col-span-full mechanical-border p-8 bg-green-500/5 reveal-dash">
+      <h4 className="mono text-green-500 mb-6 text-xs underline">REQUEST_MEMBERSHIP_UPGRADE</h4>
+      <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-2xl">
+        <input 
+          type="text" 
+          placeholder="CONTACT_NUMBER" 
+          value={contactNumber} 
+          onChange={e=>setContactNumber(e.target.value)} 
+          className="w-full bg-black border border-green-500/20 p-2.5 mono text-[9px] outline-none focus:border-green-500 text-white" 
+        />
+        <textarea 
+          placeholder="REQUEST_MESSAGE (Why do you want to join?)" 
+          value={requestMessage} 
+          onChange={e=>setRequestMessage(e.target.value)} 
+          className="w-full md:col-span-2 bg-black border border-green-500/20 p-2.5 mono text-[9px] outline-none focus:border-green-500 text-white min-h-[60px]" 
+        />
+        <div className="md:col-span-2 flex justify-between items-center mt-2">
+          <p className={`mono text-[9px] ${status.includes('ERROR') ? 'text-red-500' : 'text-green-500'}`}>{status}</p>
+          <button type="submit" className="py-2.5 px-6 bg-green-500 text-black heading-font text-[10px] hover:bg-white transition-all">SUBMIT_UPGRADE_REQUEST</button>
+        </div>
+      </form>
+    </div>
+  );
+};
+
+const CoreRequestsWidget = () => {
+  const [requests, setRequests] = useState([]);
+  
+  useEffect(() => {
+    fetch(import.meta.env.VITE_API_URL ? `${import.meta.env.VITE_API_URL}/join` : 'http://localhost:5001/api/join', {
+      credentials: 'true'
+    })
+      .then(res => res.json())
+      .then(data => setRequests(data))
+      .catch(err => console.error(err));
+  }, []);
+
+  return (
+    <div className="col-span-full mechanical-border p-8 bg-white/5 reveal-dash">
+      <h4 className="mono text-green-500 mb-6 text-xs underline">PENDING_MEMBERSHIP_REQUESTS</h4>
+      <div className="space-y-4">
+        {requests.length === 0 ? (
+          <p className="mono text-[10px] opacity-50 p-3">NO_PENDING_REQUESTS</p>
+        ) : (
+          requests.map(req => (
+            <div key={req._id} className="border border-white/10 p-4">
+              <div className="flex justify-between items-start mb-2">
+                <span className="mono text-xs text-white">{req.userId?.name || 'UNKNOWN_USER'}</span>
+                <span className="mono text-[9px] text-yellow-500">{req.status}</span>
+              </div>
+              <div className="mono text-[9px] opacity-70 mb-2">
+                ROLL: {req.userId?.rollNo} // BRANCH: {req.userId?.branch} // YR: {req.userId?.year} // CONTACT: <span className="text-green-400">{req.contactNumber}</span>
+              </div>
+              <p className="mono text-[10px] opacity-90 border-l border-green-500/30 pl-3 italic">"{req.requestMessage}"</p>
+            </div>
+          ))
+        )}
+      </div>
+    </div>
+  );
+};
+
 const DepartmentSelectionWidget = ({ user }) => {
   const [departments, setDepartments] = useState(user.memberDepartments || []);
 
@@ -363,9 +457,21 @@ export default function CommandCenter() {
           )}
 
           {/* Head Level (Level 3) */}
+          {(user.role === 'core' || user.role === 'head') && (
+            <RoleManagementLinkWidget navigate={navigate} />
+          )}
+
+          {user.role === 'core' && (
+            <CoreRequestsWidget />
+          )}
+
+          {/* Member Request for standard users */}
+          {(user.role !== 'core' && user.role !== 'head') && (
+            <MemberRequestWidget />
+          )}
+          
           {(role === 'head' || role === 'core') && (
             <>
-              <RoleManagementLinkWidget navigate={navigate} />
               <EventsWidget layout="full" />
               <CommunicationsWidget />
             </>
