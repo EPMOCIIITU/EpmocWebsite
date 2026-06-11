@@ -20,6 +20,7 @@ export default function Navbar() {
       <div className="flex gap-10 text-[10px] uppercase tracking-[0.3em] max-md:hidden items-center">
         <Link to="/#about" className="nav-link hover:text-green-400 transition-colors">Protocols</Link>
         <Link to="/archive" className="nav-link hover:text-green-400 transition-colors">Archive</Link>
+        <Link to="/gallery" className="nav-link hover:text-green-400 transition-colors">Media_Vault</Link>
         <Link to="/#team" className="nav-link hover:text-green-400 transition-colors">Personnel</Link>
         
         {isAuthenticated ? (

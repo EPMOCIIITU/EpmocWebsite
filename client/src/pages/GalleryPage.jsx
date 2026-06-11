@@ -13,12 +13,14 @@ export default function GalleryPage() {
         const res = await fetch(import.meta.env.VITE_API_URL ? `${import.meta.env.VITE_API_URL}/events` : 'http://localhost:5001/api/events');
         const data = await res.json();
         
-        // Extract all driveGalleryLinks from past events
-        const galleryLinks = data
-          .filter(ev => new Date(ev.date) < new Date() && ev.driveGalleryLink)
-          .map(ev => ev.driveGalleryLink);
+        // Extract cover images from past events, shuffle, and limit to 30
+        const images = data
+          .filter(ev => new Date(ev.date) < new Date() && ev.coverImage)
+          .map(ev => ev.coverImage)
+          .sort(() => 0.5 - Math.random())
+          .slice(0, 30);
           
-        setPhotos(galleryLinks);
+        setPhotos(images);
         setLoading(false);
       } catch (err) {
         console.error('Failed to fetch gallery:', err);
