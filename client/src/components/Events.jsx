@@ -12,8 +12,11 @@ export default function Events() {
 
   useEffect(() => {
     // Fetch real events from backend
-    fetch(import.meta.env.VITE_API_URL || 'http://localhost:5001/api/events')
-      .then(res => res.json())
+    fetch(import.meta.env.VITE_API_URL ? `${import.meta.env.VITE_API_URL}/events` : 'http://localhost:5001/api/events')
+      .then(res => {
+        if (!res.ok) throw new Error('Network response was not ok');
+        return res.json();
+      })
       .then(data => {
         setEvents(data);
         setLoading(false);
