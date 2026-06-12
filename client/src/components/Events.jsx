@@ -18,7 +18,9 @@ export default function Events() {
         return res.json();
       })
       .then(data => {
-        setEvents(data);
+        // Only show strictly UPCOMING events
+        const upcomingEvents = data.filter(ev => new Date(ev.date) >= new Date());
+        setEvents(upcomingEvents);
         setLoading(false);
       })
       .catch(err => {
@@ -89,6 +91,13 @@ export default function Events() {
               </div>
             </Link>
           ))}
+          
+          <div className="mt-12 flex justify-center reveal">
+            <Link to="/archive" className="mechanical-button inline-block text-center uppercase">
+              <div className="scanline"></div>
+              ACCESS_ARCHIVE_DATA
+            </Link>
+          </div>
         </div>
       )}
     </section>

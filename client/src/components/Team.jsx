@@ -181,8 +181,8 @@ export default function Team() {
             ALL
           </button>
           <button
-            className={`filter-btn ${filter === 'heads' ? 'text-green-500 underline' : 'opacity-50'}`}
-            onClick={() => handleFilter('heads')}
+            className={`filter-btn ${filter === 'head' ? 'text-green-500 underline' : 'opacity-50'}`}
+            onClick={() => handleFilter('head')}
           >
             HEADS
           </button>

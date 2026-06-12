@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { Link } from 'react-router-dom';
 import gsap from 'gsap';
 import Lenis from 'lenis';
 
@@ -13,8 +14,8 @@ export default function ArchivePage() {
         const res = await fetch(import.meta.env.VITE_API_URL ? `${import.meta.env.VITE_API_URL}/events` : 'http://localhost:5001/api/events');
         const data = await res.json();
         
-        // Filter events that have already happened AND have a drive link
-        const pastEvents = data.filter(ev => new Date(ev.date) < new Date() && ev.driveGalleryLink);
+        // Filter events that have already happened (don't strictly require a drive link just to exist in archive)
+        const pastEvents = data.filter(ev => new Date(ev.date) < new Date());
         setEvents(pastEvents);
         setLoading(false);
       } catch (err) {
@@ -61,11 +62,9 @@ export default function ArchivePage() {
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
           {events.map((ev) => (
-            <a 
+            <Link 
               key={ev._id} 
-              href={ev.driveGalleryLink} 
-              target="_blank" 
-              rel="noreferrer"
+              to={`/events/${ev._id}`}
               className="archive-item group block relative aspect-square mechanical-border overflow-hidden bg-white/5 hover:bg-white/10 transition-colors"
             >
               {ev.coverImage ? (
@@ -88,12 +87,12 @@ export default function ArchivePage() {
                 <div className="flex justify-between items-center opacity-0 group-hover:opacity-100 transition-opacity delay-75">
                   <span className="mono text-[9px] text-green-500">{new Date(ev.date).toLocaleDateString()}</span>
                   <span className="mono text-[9px] text-white flex items-center gap-1">
-                    ACCESS_DRIVE 
-                    <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+                    VIEW_DETAILS 
+                    <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>
                   </span>
                 </div>
               </div>
-            </a>
+            </Link>
           ))}
         </div>
       )}
